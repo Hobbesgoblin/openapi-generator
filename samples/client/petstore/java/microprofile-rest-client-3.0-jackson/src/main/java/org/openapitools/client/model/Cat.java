@@ -44,14 +44,14 @@ public class Cat extends Animal {
   
   public static final String JSON_PROPERTY_DECLAWED = "declawed";
   
-  private Boolean declawed;
+  protected Boolean declawed;
 
 
   /**
    * Get declawed
    * @return declawed
    **/
-  @JsonProperty(JSON_PROPERTY_DECLAWED)
+  @JsonProperty(value = JSON_PROPERTY_DECLAWED, required = false)
   @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
   public Boolean getDeclawed() {
     return declawed;
@@ -60,7 +60,7 @@ public class Cat extends Animal {
   /**
    * Set declawed
    */
-  @JsonProperty(JSON_PROPERTY_DECLAWED)
+  @JsonProperty(value = JSON_PROPERTY_DECLAWED, required = false)
   @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
   public void setDeclawed(Boolean declawed) {
     this.declawed = declawed;
@@ -99,10 +99,7 @@ public class Cat extends Animal {
    * (except the first line).
    */
   private static String toIndentedString(Object o) {
-    if (o == null) {
-      return "null";
-    }
-    return o.toString().replace("\n", "\n    ");
+    return o == null ? "null" : o.toString().replace("\n", "\n    ");
   }
 }
 

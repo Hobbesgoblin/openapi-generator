@@ -22,14 +22,10 @@ import { type ChildWithNullable, ChildWithNullableFromJSONTyped, ChildWithNullab
 export interface ParentWithNullable {
     /**
      * 
-     * @type {string}
-     * @memberof ParentWithNullable
      */
     type?: ParentWithNullableTypeEnum;
     /**
      * 
-     * @type {string}
-     * @memberof ParentWithNullable
      */
     nullableProperty?: string | null;
 }
@@ -39,7 +35,7 @@ export interface ParentWithNullable {
  * @export
  */
 export const ParentWithNullableTypeEnum = {
-    ChildWithNullable: 'ChildWithNullable'
+    ChildWithNullable: 'ChildWithNullable',
 } as const;
 export type ParentWithNullableTypeEnum = typeof ParentWithNullableTypeEnum[keyof typeof ParentWithNullableTypeEnum];
 
@@ -63,11 +59,12 @@ export function ParentWithNullableFromJSONTyped(json: any, ignoreDiscriminator: 
         if (json['type'] === 'ChildWithNullable') {
             return ChildWithNullableFromJSONTyped(json, ignoreDiscriminator);
         }
+
     }
     return {
         
         'type': json['type'] == null ? undefined : json['type'],
-        'nullableProperty': json['nullableProperty'] == null ? undefined : json['nullableProperty'],
+        'nullableProperty': json['nullableProperty'] === undefined ? undefined : json['nullableProperty'] === null ? null : json['nullableProperty'],
     };
 }
 

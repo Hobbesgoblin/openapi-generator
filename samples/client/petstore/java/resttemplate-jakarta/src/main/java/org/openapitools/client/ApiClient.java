@@ -15,7 +15,6 @@ package org.openapitools.client;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -30,7 +29,6 @@ import org.springframework.http.client.BufferingClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpRequestExecution;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -73,7 +71,7 @@ import org.openapitools.client.auth.Authentication;
 import org.openapitools.client.auth.ApiKeyAuth;
 import org.openapitools.client.auth.OAuth;
 
-@jakarta.annotation.Generated(value = "org.openapitools.codegen.languages.JavaClientCodegen", comments = "Generator version: 7.15.0-SNAPSHOT")
+@jakarta.annotation.Generated(value = "org.openapitools.codegen.languages.JavaClientCodegen", comments = "Generator version: 7.27.0-SNAPSHOT")
 public class ApiClient extends JavaTimeFormatter {
     public enum CollectionFormat {
         CSV(","), TSV("\t"), SSV(" "), PIPES("|"), MULTI(null);
@@ -125,7 +123,7 @@ public class ApiClient extends JavaTimeFormatter {
         this.dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
 
         // Set default User-Agent.
-        setUserAgent("Java-SDK");
+        setUserAgent("OpenAPI-Generator/1.0.0/java");
 
         // Setup authentications (key: authentication name, value: authentication).
         authentications = new HashMap<String, Authentication>();
@@ -291,10 +289,7 @@ public class ApiClient extends JavaTimeFormatter {
      * @return ApiClient this client
      */
     public ApiClient addDefaultHeader(String name, String value) {
-        if (defaultHeaders.containsKey(name)) {
-            defaultHeaders.remove(name);
-        }
-        defaultHeaders.add(name, value);
+        defaultHeaders.set(name, value);
         return this;
     }
 
@@ -559,10 +554,10 @@ public class ApiClient extends JavaTimeFormatter {
     /**
      * Select the Content-Type header's value from the given array:
      *     if JSON exists in the given array, use it;
-     *     otherwise use the first one of the array.
+     *     otherwise use the first non-wildcard one of the array.
      *
      * @param contentTypes The Content-Type array to select from
-     * @return MediaType The Content-Type header to use. If the given array is empty, JSON will be used.
+     * @return MediaType The Content-Type header to use. If the given array is empty, or only contains wildcard media types, JSON will be used.
      */
     public MediaType selectHeaderContentType(String[] contentTypes) {
         if (contentTypes.length == 0) {
@@ -571,10 +566,20 @@ public class ApiClient extends JavaTimeFormatter {
         for (String contentType : contentTypes) {
             MediaType mediaType = MediaType.parseMediaType(contentType);
             if (isJsonMime(mediaType)) {
+                // A wildcard media type (e.g. "*/*" or "application/*") is treated as
+                // JSON-compatible but cannot be used as a request Content-Type header,
+                // so fall back to concrete JSON in that case.
+                return mediaType.isWildcardType() || mediaType.isWildcardSubtype() ? MediaType.APPLICATION_JSON : mediaType;
+            }
+        }
+        // No JSON type found; use the first concrete (non-wildcard) media type instead.
+        for (String contentType : contentTypes) {
+            MediaType mediaType = MediaType.parseMediaType(contentType);
+            if (!mediaType.isWildcardType() && !mediaType.isWildcardSubtype()) {
                 return mediaType;
             }
         }
-        return MediaType.parseMediaType(contentTypes[0]);
+        return MediaType.APPLICATION_JSON;
     }
 
     /**
@@ -705,9 +710,7 @@ public class ApiClient extends JavaTimeFormatter {
                 break;
             } catch (HttpServerErrorException | HttpClientErrorException ex) {
                 if (ex instanceof HttpServerErrorException
-                        || ((HttpClientErrorException) ex)
-                        .getStatusCode()
-                        .equals(HttpStatus.TOO_MANY_REQUESTS)) {
+                        || ex.getStatusCode().equals(HttpStatus.TOO_MANY_REQUESTS)) {
                     attempts++;
                     if (attempts < maxAttemptsForRetry) {
                         try {
@@ -742,7 +745,7 @@ public class ApiClient extends JavaTimeFormatter {
      * @param requestBuilder The current request
      */
     protected void addHeadersToRequest(HttpHeaders headers, BodyBuilder requestBuilder) {
-        for (Entry<String, List<String>> entry : headers.entrySet()) {
+        for (Entry<String, List<String>> entry : headers.headerSet()) {
             List<String> values = entry.getValue();
             for (String value : values) {
                 if (value != null) {
@@ -776,7 +779,7 @@ public class ApiClient extends JavaTimeFormatter {
         String delimiter = "";
         for (final Map.Entry<String, List<String>> entry : cookies.entrySet()) {
             final String value = entry.getValue().get(entry.getValue().size() - 1);
-            cookieValue.append(String.format("%s%s=%s", delimiter, entry.getKey(), value));
+            cookieValue.append(String.format(java.util.Locale.ROOT, "%s%s=%s", delimiter, entry.getKey(), value));
             delimiter = "; ";
         }
         return cookieValue.toString();
@@ -845,7 +848,7 @@ public class ApiClient extends JavaTimeFormatter {
                 return "";
             }
             StringBuilder builder = new StringBuilder();
-            for (Entry<String, List<String>> entry : headers.entrySet()) {
+            for (Entry<String, List<String>> entry : headers.headerSet()) {
                 builder.append(entry.getKey()).append("=[");
                 for (String value : entry.getValue()) {
                     builder.append(value).append(",");

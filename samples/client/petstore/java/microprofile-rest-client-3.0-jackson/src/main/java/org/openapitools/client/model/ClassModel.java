@@ -37,14 +37,14 @@ public class ClassModel  {
   
   public static final String JSON_PROPERTY_PROPERTY_CLASS = "_class";
   
-  private String propertyClass;
+  protected String propertyClass;
 
 
   /**
    * Get propertyClass
    * @return propertyClass
    **/
-  @JsonProperty(JSON_PROPERTY_PROPERTY_CLASS)
+  @JsonProperty(value = JSON_PROPERTY_PROPERTY_CLASS, required = false)
   @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
   public String getPropertyClass() {
     return propertyClass;
@@ -53,7 +53,7 @@ public class ClassModel  {
   /**
    * Set propertyClass
    */
-  @JsonProperty(JSON_PROPERTY_PROPERTY_CLASS)
+  @JsonProperty(value = JSON_PROPERTY_PROPERTY_CLASS, required = false)
   @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
   public void setPropertyClass(String propertyClass) {
     this.propertyClass = propertyClass;
@@ -92,10 +92,7 @@ public class ClassModel  {
    * (except the first line).
    */
   private static String toIndentedString(Object o) {
-    if (o == null) {
-      return "null";
-    }
-    return o.toString().replace("\n", "\n    ");
+    return o == null ? "null" : o.toString().replace("\n", "\n    ");
   }
 }
 

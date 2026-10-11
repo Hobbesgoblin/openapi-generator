@@ -39,18 +39,18 @@ public class FileSchemaTestClass  {
   
   public static final String JSON_PROPERTY_FILE = "file";
   
-  private ModelFile _file;
+  protected ModelFile _file;
 
   public static final String JSON_PROPERTY_FILES = "files";
   
-  private List<ModelFile> files = null;
+  protected List<ModelFile> files = null;
 
 
   /**
    * Get _file
    * @return _file
    **/
-  @JsonProperty(JSON_PROPERTY_FILE)
+  @JsonProperty(value = JSON_PROPERTY_FILE, required = false)
   @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
   public ModelFile getFile() {
     return _file;
@@ -59,7 +59,7 @@ public class FileSchemaTestClass  {
   /**
    * Set _file
    */
-  @JsonProperty(JSON_PROPERTY_FILE)
+  @JsonProperty(value = JSON_PROPERTY_FILE, required = false)
   @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
   public void setFile(ModelFile _file) {
     this._file = _file;
@@ -74,7 +74,7 @@ public class FileSchemaTestClass  {
    * Get files
    * @return files
    **/
-  @JsonProperty(JSON_PROPERTY_FILES)
+  @JsonProperty(value = JSON_PROPERTY_FILES, required = false)
   @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
   public List<ModelFile> getFiles() {
     return files;
@@ -83,7 +83,7 @@ public class FileSchemaTestClass  {
   /**
    * Set files
    */
-  @JsonProperty(JSON_PROPERTY_FILES)
+  @JsonProperty(value = JSON_PROPERTY_FILES, required = false)
   @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
   public void setFiles(List<ModelFile> files) {
     this.files = files;
@@ -131,10 +131,7 @@ public class FileSchemaTestClass  {
    * (except the first line).
    */
   private static String toIndentedString(Object o) {
-    if (o == null) {
-      return "null";
-    }
-    return o.toString().replace("\n", "\n    ");
+    return o == null ? "null" : o.toString().replace("\n", "\n    ");
   }
 }
 

@@ -3,11 +3,13 @@
 //
 
 // ignore_for_file: unused_element
+import 'package:copy_with_extension/copy_with_extension.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'map_test.g.dart';
 
 
+@CopyWith()
 @JsonSerializable(
   checked: true,
   createToJson: true,
@@ -44,7 +46,6 @@ class MapTest {
     name: r'map_of_enum_string',
     required: false,
     includeIfNull: false,
-  unknownEnumValue: Map<String, MapTestMapOfEnumStringEnum>.unknownDefaultOpenApi,
   )
 
 
@@ -102,7 +103,6 @@ class MapTest {
   }
 
 }
-
 
 enum MapTestMapOfEnumStringEnum {
 @JsonValue(r'UPPER')

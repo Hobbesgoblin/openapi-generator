@@ -130,7 +130,7 @@ namespace Org.OpenAPITools.Model
         /// <param name="options"></param>
         public override void Write(Utf8JsonWriter writer, TestDescendantsObjectType testDescendantsObjectType, JsonSerializerOptions options)
         {
-            writer.WriteStringValue(testDescendantsObjectType.ToString());
+            writer.WriteStringValue(TestDescendantsObjectTypeValueConverter.ToJsonValue(testDescendantsObjectType).ToString());
         }
     }
 
@@ -148,6 +148,9 @@ namespace Org.OpenAPITools.Model
         /// <returns></returns>
         public override TestDescendantsObjectType? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
+            if (reader.TokenType == JsonTokenType.Null)
+                return null;
+
             string rawValue = reader.GetString();
 
             TestDescendantsObjectType? result = rawValue == null
@@ -161,14 +164,17 @@ namespace Org.OpenAPITools.Model
         }
 
         /// <summary>
-        /// Writes the DateTime to the json writer
+        /// Writes the TestDescendantsObjectType to the json writer
         /// </summary>
         /// <param name="writer"></param>
         /// <param name="testDescendantsObjectType"></param>
         /// <param name="options"></param>
         public override void Write(Utf8JsonWriter writer, TestDescendantsObjectType? testDescendantsObjectType, JsonSerializerOptions options)
         {
-            writer.WriteStringValue(testDescendantsObjectType?.ToString() ?? "null");
+            if (testDescendantsObjectType.HasValue)
+                writer.WriteStringValue(TestDescendantsObjectTypeValueConverter.ToJsonValue(testDescendantsObjectType.Value).ToString());
+            else
+                writer.WriteNullValue();
         }
     }
 }

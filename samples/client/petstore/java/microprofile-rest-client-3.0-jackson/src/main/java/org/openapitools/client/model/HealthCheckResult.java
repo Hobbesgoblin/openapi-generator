@@ -37,14 +37,14 @@ public class HealthCheckResult  {
   
   public static final String JSON_PROPERTY_NULLABLE_MESSAGE = "NullableMessage";
   
-  private String nullableMessage;
+  protected String nullableMessage;
 
 
   /**
    * Get nullableMessage
    * @return nullableMessage
    **/
-  @JsonProperty(JSON_PROPERTY_NULLABLE_MESSAGE)
+  @JsonProperty(value = JSON_PROPERTY_NULLABLE_MESSAGE, required = false)
   @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
   public String getNullableMessage() {
     return nullableMessage;
@@ -53,7 +53,7 @@ public class HealthCheckResult  {
   /**
    * Set nullableMessage
    */
-  @JsonProperty(JSON_PROPERTY_NULLABLE_MESSAGE)
+  @JsonProperty(value = JSON_PROPERTY_NULLABLE_MESSAGE, required = false)
   @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
   public void setNullableMessage(String nullableMessage) {
     this.nullableMessage = nullableMessage;
@@ -92,10 +92,7 @@ public class HealthCheckResult  {
    * (except the first line).
    */
   private static String toIndentedString(Object o) {
-    if (o == null) {
-      return "null";
-    }
-    return o.toString().replace("\n", "\n    ");
+    return o == null ? "null" : o.toString().replace("\n", "\n    ");
   }
 }
 

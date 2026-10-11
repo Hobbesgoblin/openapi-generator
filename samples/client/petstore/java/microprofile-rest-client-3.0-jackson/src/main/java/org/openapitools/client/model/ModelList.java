@@ -35,14 +35,14 @@ public class ModelList  {
   
   public static final String JSON_PROPERTY_123LIST = "123-list";
   
-  private String _123list;
+  protected String _123list;
 
 
   /**
    * Get _123list
    * @return _123list
    **/
-  @JsonProperty(JSON_PROPERTY_123LIST)
+  @JsonProperty(value = JSON_PROPERTY_123LIST, required = false)
   @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
   public String get123list() {
     return _123list;
@@ -51,7 +51,7 @@ public class ModelList  {
   /**
    * Set _123list
    */
-  @JsonProperty(JSON_PROPERTY_123LIST)
+  @JsonProperty(value = JSON_PROPERTY_123LIST, required = false)
   @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
   public void set123list(String _123list) {
     this._123list = _123list;
@@ -90,10 +90,7 @@ public class ModelList  {
    * (except the first line).
    */
   private static String toIndentedString(Object o) {
-    if (o == null) {
-      return "null";
-    }
-    return o.toString().replace("\n", "\n    ");
+    return o == null ? "null" : o.toString().replace("\n", "\n    ");
   }
 }
 

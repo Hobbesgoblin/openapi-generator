@@ -190,10 +190,17 @@ impl<Connector, C> Client<
     }
 }
 
+#[cfg(all(feature = "client-tls", any(target_os = "macos", target_os = "windows", target_os = "ios")))]
+type HyperHttpsConnector = hyper_tls::HttpsConnector<hyper_util::client::legacy::connect::HttpConnector>;
+
+#[cfg(all(feature = "client-tls", not(any(target_os = "macos", target_os = "windows", target_os = "ios"))))]
+type HyperHttpsConnector = hyper_openssl::client::legacy::HttpsConnector<hyper_util::client::legacy::connect::HttpConnector>;
+
 #[derive(Debug, Clone)]
 pub enum HyperClient {
     Http(hyper_util::client::legacy::Client<hyper_util::client::legacy::connect::HttpConnector, BoxBody<Bytes, Infallible>>),
-    Https(hyper_util::client::legacy::Client<HttpsConnector, BoxBody<Bytes, Infallible>>),
+    #[cfg(feature = "client-tls")]
+    Https(hyper_util::client::legacy::Client<HyperHttpsConnector, BoxBody<Bytes, Infallible>>),
 }
 
 impl Service<Request<BoxBody<Bytes, Infallible>>> for HyperClient {
@@ -204,7 +211,8 @@ impl Service<Request<BoxBody<Bytes, Infallible>>> for HyperClient {
     fn call(&self, req: Request<BoxBody<Bytes, Infallible>>) -> Self::Future {
        match self {
           HyperClient::Http(client) => client.request(req),
-          HyperClient::Https(client) => client.request(req)
+          #[cfg(feature = "client-tls")]
+          HyperClient::Https(client) => client.request(req),
        }
     }
 }
@@ -230,11 +238,17 @@ impl<C> Client<DropContextService<HyperClient, C>, C> where
             "http" => {
                 HyperClient::Http(hyper_util::client::legacy::Client::builder(hyper_util::rt::TokioExecutor::new()).build(connector.build()))
             },
+            #[cfg(feature = "client-tls")]
             "https" => {
-                let connector = connector.https()
-                   .build()
-                   .map_err(ClientInitError::SslError)?;
-                HyperClient::Https(hyper_util::client::legacy::Client::builder(hyper_util::rt::TokioExecutor::new()).build(connector))
+                let https_connector = connector
+                    .https()
+                    .build()
+                    .map_err(ClientInitError::SslError)?;
+                HyperClient::Https(hyper_util::client::legacy::Client::builder(hyper_util::rt::TokioExecutor::new()).build(https_connector))
+            },
+            #[cfg(not(feature = "client-tls"))]
+            "https" => {
+                return Err(ClientInitError::TlsNotEnabled);
             },
             _ => {
                 return Err(ClientInitError::InvalidScheme);
@@ -278,12 +292,13 @@ impl<C> Client<
     }
 }
 
-#[cfg(any(target_os = "macos", target_os = "windows", target_os = "ios"))]
+#[cfg(all(feature = "client-tls", any(target_os = "macos", target_os = "windows", target_os = "ios")))]
 type HttpsConnector = hyper_tls::HttpsConnector<hyper_util::client::legacy::connect::HttpConnector>;
 
-#[cfg(not(any(target_os = "macos", target_os = "windows", target_os = "ios")))]
+#[cfg(all(feature = "client-tls", not(any(target_os = "macos", target_os = "windows", target_os = "ios"))))]
 type HttpsConnector = hyper_openssl::client::legacy::HttpsConnector<hyper_util::client::legacy::connect::HttpConnector>;
 
+#[cfg(feature = "client-tls")]
 impl<C> Client<
     DropContextService<
         hyper_util::service::TowerToHyperService<
@@ -298,10 +313,11 @@ impl<C> Client<
 > where
     C: Clone + Send + Sync + 'static
 {
-    /// Create a client with a TLS connection to the server
+    /// Create a client with a TLS connection to the server.
     ///
     /// # Arguments
-    /// * `base_path` - base path of the client API, i.e. "<http://www.my-api-implementation.com>"
+    /// * `base_path` - base path of the client API, i.e. "<https://www.my-api-implementation.com>"
+    #[cfg(any(target_os = "macos", target_os = "windows", target_os = "ios"))]
     pub fn try_new_https(base_path: &str) -> Result<Self, ClientInitError>
     {
         let https_connector = Connector::builder()
@@ -311,10 +327,24 @@ impl<C> Client<
         Self::try_new_with_connector(base_path, Some("https"), https_connector)
     }
 
-    /// Create a client with a TLS connection to the server using a pinned certificate
+    /// Create a client with a TLS connection to the server using OpenSSL via swagger.
     ///
     /// # Arguments
-    /// * `base_path` - base path of the client API, i.e. "<http://www.my-api-implementation.com>"
+    /// * `base_path` - base path of the client API, i.e. "<https://www.my-api-implementation.com>"
+    #[cfg(not(any(target_os = "macos", target_os = "windows", target_os = "ios")))]
+    pub fn try_new_https(base_path: &str) -> Result<Self, ClientInitError>
+    {
+        let https_connector = Connector::builder()
+            .https()
+            .build()
+            .map_err(ClientInitError::SslError)?;
+        Self::try_new_with_connector(base_path, Some("https"), https_connector)
+    }
+
+    /// Create a client with a TLS connection to the server using a pinned certificate.
+    ///
+    /// # Arguments
+    /// * `base_path` - base path of the client API, i.e. "<https://www.my-api-implementation.com>"
     /// * `ca_certificate` - Path to CA certificate used to authenticate the server
     #[cfg(not(any(target_os = "macos", target_os = "windows", target_os = "ios")))]
     pub fn try_new_https_pinned<CA>(
@@ -335,7 +365,7 @@ impl<C> Client<
     /// Create a client with a mutually authenticated TLS connection to the server.
     ///
     /// # Arguments
-    /// * `base_path` - base path of the client API, i.e. "<http://www.my-api-implementation.com>"
+    /// * `base_path` - base path of the client API, i.e. "<https://www.my-api-implementation.com>"
     /// * `ca_certificate` - Path to CA certificate used to authenticate the server
     /// * `client_key` - Path to the client private key
     /// * `client_certificate` - Path to the client's public certificate associated with the private key
@@ -397,12 +427,15 @@ pub enum ClientInitError {
     /// Missing Hostname
     MissingHost,
 
+    /// HTTPS requested but TLS features not enabled
+    TlsNotEnabled,
+
     /// SSL Connection Error
-    #[cfg(any(target_os = "macos", target_os = "windows", target_os = "ios"))]
+    #[cfg(all(feature = "client-tls", any(target_os = "macos", target_os = "windows", target_os = "ios")))]
     SslError(native_tls::Error),
 
     /// SSL Connection Error
-    #[cfg(not(any(target_os = "macos", target_os = "windows", target_os = "ios")))]
+    #[cfg(all(feature = "client-tls", not(any(target_os = "macos", target_os = "windows", target_os = "ios"))))]
     SslError(openssl::error::ErrorStack),
 }
 
@@ -428,6 +461,11 @@ impl Error for ClientInitError {
 #[allow(dead_code)]
 fn body_from_string(s: String) -> BoxBody<Bytes, Infallible> {
     BoxBody::new(Full::new(Bytes::from(s)))
+}
+
+#[allow(dead_code)]
+fn body_from_bytes(b: Vec<u8>) -> BoxBody<Bytes, Infallible> {
+    BoxBody::new(Full::new(Bytes::from(b)))
 }
 
 #[async_trait]
@@ -485,10 +523,7 @@ impl<S, C, B> Api<C> for Client<S, C> where
         *request.body_mut() = body_from_string(body);
 
         let header = "application/json";
-        request.headers_mut().insert(CONTENT_TYPE, match HeaderValue::from_str(header) {
-            Ok(h) => h,
-            Err(e) => return Err(ApiError(format!("Unable to create header: {header} - {e}")))
-        });
+        request.headers_mut().insert(CONTENT_TYPE, HeaderValue::from_static(header));
 
         let header = HeaderValue::from_str(Has::<XSpanIdString>::get(context).0.as_str());
         request.headers_mut().insert(HeaderName::from_static("x-span-id"), match header {
@@ -501,8 +536,8 @@ impl<S, C, B> Api<C> for Client<S, C> where
 
         match response.status().as_u16() {
             200 => {
-                let body = response.into_body();
-                let body = http_body_util::BodyExt::collect(body)
+
+                let body = http_body_util::BodyExt::collect(response.into_body())
                         .await
                         .map(|f| f.to_bytes().to_vec())
                         .map_err(|e| ApiError(format!("Failed to read response: {}", e.into())))?;
@@ -511,7 +546,6 @@ impl<S, C, B> Api<C> for Client<S, C> where
                     .map_err(|e| ApiError(format!("Response was not valid UTF8: {e}")))?;
                 let body = serde_json::from_str::<models::Client>(body)
                     .map_err(|e| ApiError(format!("Response body did not match the schema: {e}")))?;
-
 
                 Ok(TestSpecialTagsResponse::SuccessfulOperation
                     (body)
@@ -647,10 +681,7 @@ impl<S, C, B> Api<C> for Client<S, C> where
         }
 
         let header = "application/json";
-        request.headers_mut().insert(CONTENT_TYPE, match HeaderValue::from_str(header) {
-            Ok(h) => h,
-            Err(e) => return Err(ApiError(format!("Unable to create header: {header} - {e}")))
-        });
+        request.headers_mut().insert(CONTENT_TYPE, HeaderValue::from_static(header));
 
         let header = HeaderValue::from_str(Has::<XSpanIdString>::get(context).0.as_str());
         request.headers_mut().insert(HeaderName::from_static("x-span-id"), match header {
@@ -663,8 +694,8 @@ impl<S, C, B> Api<C> for Client<S, C> where
 
         match response.status().as_u16() {
             200 => {
-                let body = response.into_body();
-                let body = http_body_util::BodyExt::collect(body)
+
+                let body = http_body_util::BodyExt::collect(response.into_body())
                         .await
                         .map(|f| f.to_bytes().to_vec())
                         .map_err(|e| ApiError(format!("Failed to read response: {}", e.into())))?;
@@ -673,7 +704,6 @@ impl<S, C, B> Api<C> for Client<S, C> where
                     .map_err(|e| ApiError(format!("Response was not valid UTF8: {e}")))?;
                 let body = serde_json::from_str::<bool>(body)
                     .map_err(|e| ApiError(format!("Response body did not match the schema: {e}")))?;
-
 
                 Ok(FakeOuterBooleanSerializeResponse::OutputBoolean
                     (body)
@@ -741,10 +771,7 @@ impl<S, C, B> Api<C> for Client<S, C> where
         }
 
         let header = "application/json";
-        request.headers_mut().insert(CONTENT_TYPE, match HeaderValue::from_str(header) {
-            Ok(h) => h,
-            Err(e) => return Err(ApiError(format!("Unable to create header: {header} - {e}")))
-        });
+        request.headers_mut().insert(CONTENT_TYPE, HeaderValue::from_static(header));
 
         let header = HeaderValue::from_str(Has::<XSpanIdString>::get(context).0.as_str());
         request.headers_mut().insert(HeaderName::from_static("x-span-id"), match header {
@@ -757,8 +784,8 @@ impl<S, C, B> Api<C> for Client<S, C> where
 
         match response.status().as_u16() {
             200 => {
-                let body = response.into_body();
-                let body = http_body_util::BodyExt::collect(body)
+
+                let body = http_body_util::BodyExt::collect(response.into_body())
                         .await
                         .map(|f| f.to_bytes().to_vec())
                         .map_err(|e| ApiError(format!("Failed to read response: {}", e.into())))?;
@@ -767,7 +794,6 @@ impl<S, C, B> Api<C> for Client<S, C> where
                     .map_err(|e| ApiError(format!("Response was not valid UTF8: {e}")))?;
                 let body = serde_json::from_str::<models::OuterComposite>(body)
                     .map_err(|e| ApiError(format!("Response body did not match the schema: {e}")))?;
-
 
                 Ok(FakeOuterCompositeSerializeResponse::OutputComposite
                     (body)
@@ -835,10 +861,7 @@ impl<S, C, B> Api<C> for Client<S, C> where
         }
 
         let header = "application/json";
-        request.headers_mut().insert(CONTENT_TYPE, match HeaderValue::from_str(header) {
-            Ok(h) => h,
-            Err(e) => return Err(ApiError(format!("Unable to create header: {header} - {e}")))
-        });
+        request.headers_mut().insert(CONTENT_TYPE, HeaderValue::from_static(header));
 
         let header = HeaderValue::from_str(Has::<XSpanIdString>::get(context).0.as_str());
         request.headers_mut().insert(HeaderName::from_static("x-span-id"), match header {
@@ -851,8 +874,8 @@ impl<S, C, B> Api<C> for Client<S, C> where
 
         match response.status().as_u16() {
             200 => {
-                let body = response.into_body();
-                let body = http_body_util::BodyExt::collect(body)
+
+                let body = http_body_util::BodyExt::collect(response.into_body())
                         .await
                         .map(|f| f.to_bytes().to_vec())
                         .map_err(|e| ApiError(format!("Failed to read response: {}", e.into())))?;
@@ -861,7 +884,6 @@ impl<S, C, B> Api<C> for Client<S, C> where
                     .map_err(|e| ApiError(format!("Response was not valid UTF8: {e}")))?;
                 let body = serde_json::from_str::<f64>(body)
                     .map_err(|e| ApiError(format!("Response body did not match the schema: {e}")))?;
-
 
                 Ok(FakeOuterNumberSerializeResponse::OutputNumber
                     (body)
@@ -929,10 +951,7 @@ impl<S, C, B> Api<C> for Client<S, C> where
         }
 
         let header = "application/json";
-        request.headers_mut().insert(CONTENT_TYPE, match HeaderValue::from_str(header) {
-            Ok(h) => h,
-            Err(e) => return Err(ApiError(format!("Unable to create header: {header} - {e}")))
-        });
+        request.headers_mut().insert(CONTENT_TYPE, HeaderValue::from_static(header));
 
         let header = HeaderValue::from_str(Has::<XSpanIdString>::get(context).0.as_str());
         request.headers_mut().insert(HeaderName::from_static("x-span-id"), match header {
@@ -945,8 +964,8 @@ impl<S, C, B> Api<C> for Client<S, C> where
 
         match response.status().as_u16() {
             200 => {
-                let body = response.into_body();
-                let body = http_body_util::BodyExt::collect(body)
+
+                let body = http_body_util::BodyExt::collect(response.into_body())
                         .await
                         .map(|f| f.to_bytes().to_vec())
                         .map_err(|e| ApiError(format!("Failed to read response: {}", e.into())))?;
@@ -955,7 +974,6 @@ impl<S, C, B> Api<C> for Client<S, C> where
                     .map_err(|e| ApiError(format!("Response was not valid UTF8: {e}")))?;
                 let body = serde_json::from_str::<String>(body)
                     .map_err(|e| ApiError(format!("Response body did not match the schema: {e}")))?;
-
 
                 Ok(FakeOuterStringSerializeResponse::OutputString
                     (body)
@@ -1092,10 +1110,7 @@ impl<S, C, B> Api<C> for Client<S, C> where
         *request.body_mut() = body_from_string(body);
 
         let header = "application/json";
-        request.headers_mut().insert(CONTENT_TYPE, match HeaderValue::from_str(header) {
-            Ok(h) => h,
-            Err(e) => return Err(ApiError(format!("Unable to create header: {header} - {e}")))
-        });
+        request.headers_mut().insert(CONTENT_TYPE, HeaderValue::from_static(header));
 
         let header = HeaderValue::from_str(Has::<XSpanIdString>::get(context).0.as_str());
         request.headers_mut().insert(HeaderName::from_static("x-span-id"), match header {
@@ -1172,10 +1187,7 @@ impl<S, C, B> Api<C> for Client<S, C> where
         *request.body_mut() = body_from_string(body);
 
         let header = "application/json";
-        request.headers_mut().insert(CONTENT_TYPE, match HeaderValue::from_str(header) {
-            Ok(h) => h,
-            Err(e) => return Err(ApiError(format!("Unable to create header: {header} - {e}")))
-        });
+        request.headers_mut().insert(CONTENT_TYPE, HeaderValue::from_static(header));
 
         let header = HeaderValue::from_str(Has::<XSpanIdString>::get(context).0.as_str());
         request.headers_mut().insert(HeaderName::from_static("x-span-id"), match header {
@@ -1188,8 +1200,8 @@ impl<S, C, B> Api<C> for Client<S, C> where
 
         match response.status().as_u16() {
             200 => {
-                let body = response.into_body();
-                let body = http_body_util::BodyExt::collect(body)
+
+                let body = http_body_util::BodyExt::collect(response.into_body())
                         .await
                         .map(|f| f.to_bytes().to_vec())
                         .map_err(|e| ApiError(format!("Failed to read response: {}", e.into())))?;
@@ -1198,7 +1210,6 @@ impl<S, C, B> Api<C> for Client<S, C> where
                     .map_err(|e| ApiError(format!("Response was not valid UTF8: {e}")))?;
                 let body = serde_json::from_str::<models::Client>(body)
                     .map_err(|e| ApiError(format!("Response body did not match the schema: {e}")))?;
-
 
                 Ok(TestClientModelResponse::SuccessfulOperation
                     (body)
@@ -1229,8 +1240,8 @@ impl<S, C, B> Api<C> for Client<S, C> where
         param_double: f64,
         param_pattern_without_delimiter: String,
         param_byte: swagger::ByteArray,
-        param_integer: Option<i32>,
-        param_int32: Option<i32>,
+        param_integer: Option<u32>,
+        param_int32: Option<u32>,
         param_int64: Option<i64>,
         param_float: Option<f32>,
         param_string: Option<String>,
@@ -1355,10 +1366,7 @@ impl<S, C, B> Api<C> for Client<S, C> where
         *request.body_mut() = body_from_string(body);
 
         let header = "application/x-www-form-urlencoded";
-        request.headers_mut().insert(CONTENT_TYPE, match HeaderValue::from_str(header) {
-            Ok(h) => h,
-            Err(e) => return Err(ApiError(format!("Unable to create header: {header} - {e}")))
-        });
+        request.headers_mut().insert(CONTENT_TYPE, HeaderValue::from_static(header));
 
         let header = HeaderValue::from_str(Has::<XSpanIdString>::get(context).0.as_str());
         request.headers_mut().insert(HeaderName::from_static("x-span-id"), match header {
@@ -1369,7 +1377,9 @@ impl<S, C, B> Api<C> for Client<S, C> where
         #[allow(clippy::collapsible_match)]
         if let Some(auth_data) = Has::<Option<AuthData>>::get(context).as_ref() {
             use headers::authorization::Credentials;
-            #[allow(clippy::single_match, clippy::match_single_binding)]
+            // The trailing `_` arm is unreachable when the spec declares every kind of
+            // scheme `AuthData` can represent, and the workspace denies warnings.
+            #[allow(unreachable_patterns, clippy::single_match, clippy::match_single_binding)]
             match auth_data {
                 AuthData::Basic(ref basic_user, ref basic_password) => {
                     let auth = headers::Authorization::basic(basic_user.as_str(), basic_password.as_str());
@@ -1414,11 +1424,11 @@ impl<S, C, B> Api<C> for Client<S, C> where
     }
 
     #[allow(clippy::vec_init_then_push)]
-    async fn test_enum_parameters(
+    async fn test_enum_parameters<'a>(
         &self,
-        param_enum_header_string_array: Option<&Vec<models::TestEnumParametersEnumHeaderStringArrayParameterInner>>,
+        param_enum_header_string_array: Option<&'a Vec<models::TestEnumParametersEnumHeaderStringArrayParameterInner>>,
         param_enum_header_string: Option<models::TestEnumParametersEnumHeaderStringParameter>,
-        param_enum_query_string_array: Option<&Vec<models::TestEnumParametersEnumHeaderStringArrayParameterInner>>,
+        param_enum_query_string_array: Option<&'a Vec<models::TestEnumParametersEnumHeaderStringArrayParameterInner>>,
         param_enum_query_string: Option<models::TestEnumParametersEnumHeaderStringParameter>,
         param_enum_query_integer: Option<models::TestEnumParametersEnumQueryIntegerParameter>,
         param_enum_query_double: Option<models::TestEnumParametersEnumQueryDoubleParameter>,
@@ -1476,7 +1486,7 @@ impl<S, C, B> Api<C> for Client<S, C> where
         if let Some(param_enum_form_string) = param_enum_form_string {
         #[allow(clippy::uninlined_format_args)]
         params.push(("enum_form_string",
-            format!("{:?}", param_enum_form_string)
+            format!("{}", param_enum_form_string)
         ));
         }
 
@@ -1485,10 +1495,7 @@ impl<S, C, B> Api<C> for Client<S, C> where
         *request.body_mut() = body_from_string(body);
 
         let header = "application/x-www-form-urlencoded";
-        request.headers_mut().insert(CONTENT_TYPE, match HeaderValue::from_str(header) {
-            Ok(h) => h,
-            Err(e) => return Err(ApiError(format!("Unable to create header: {header} - {e}")))
-        });
+        request.headers_mut().insert(CONTENT_TYPE, HeaderValue::from_static(header));
 
         let header = HeaderValue::from_str(Has::<XSpanIdString>::get(context).0.as_str());
         request.headers_mut().insert(HeaderName::from_static("x-span-id"), match header {
@@ -1605,10 +1612,7 @@ impl<S, C, B> Api<C> for Client<S, C> where
         *request.body_mut() = body_from_string(body);
 
         let header = "application/json";
-        request.headers_mut().insert(CONTENT_TYPE, match HeaderValue::from_str(header) {
-            Ok(h) => h,
-            Err(e) => return Err(ApiError(format!("Unable to create header: {header} - {e}")))
-        });
+        request.headers_mut().insert(CONTENT_TYPE, HeaderValue::from_static(header));
 
         let header = HeaderValue::from_str(Has::<XSpanIdString>::get(context).0.as_str());
         request.headers_mut().insert(HeaderName::from_static("x-span-id"), match header {
@@ -1696,10 +1700,7 @@ impl<S, C, B> Api<C> for Client<S, C> where
         *request.body_mut() = body_from_string(body);
 
         let header = "application/x-www-form-urlencoded";
-        request.headers_mut().insert(CONTENT_TYPE, match HeaderValue::from_str(header) {
-            Ok(h) => h,
-            Err(e) => return Err(ApiError(format!("Unable to create header: {header} - {e}")))
-        });
+        request.headers_mut().insert(CONTENT_TYPE, HeaderValue::from_static(header));
 
         let header = HeaderValue::from_str(Has::<XSpanIdString>::get(context).0.as_str());
         request.headers_mut().insert(HeaderName::from_static("x-span-id"), match header {
@@ -1849,10 +1850,7 @@ impl<S, C, B> Api<C> for Client<S, C> where
         *request.body_mut() = body_from_string(body);
 
         let header = "application/json";
-        request.headers_mut().insert(CONTENT_TYPE, match HeaderValue::from_str(header) {
-            Ok(h) => h,
-            Err(e) => return Err(ApiError(format!("Unable to create header: {header} - {e}")))
-        });
+        request.headers_mut().insert(CONTENT_TYPE, HeaderValue::from_static(header));
 
         let header = HeaderValue::from_str(Has::<XSpanIdString>::get(context).0.as_str());
         request.headers_mut().insert(HeaderName::from_static("x-span-id"), match header {
@@ -1863,7 +1861,9 @@ impl<S, C, B> Api<C> for Client<S, C> where
         #[allow(clippy::collapsible_match)]
         if let Some(auth_data) = Has::<Option<AuthData>>::get(context).as_ref() {
             use headers::authorization::Credentials;
-            #[allow(clippy::single_match, clippy::match_single_binding)]
+            // The trailing `_` arm is unreachable when the spec declares every kind of
+            // scheme `AuthData` can represent, and the workspace denies warnings.
+            #[allow(unreachable_patterns, clippy::single_match, clippy::match_single_binding)]
             match auth_data {
                 _ => {}
             }
@@ -1874,8 +1874,8 @@ impl<S, C, B> Api<C> for Client<S, C> where
 
         match response.status().as_u16() {
             200 => {
-                let body = response.into_body();
-                let body = http_body_util::BodyExt::collect(body)
+
+                let body = http_body_util::BodyExt::collect(response.into_body())
                         .await
                         .map(|f| f.to_bytes().to_vec())
                         .map_err(|e| ApiError(format!("Failed to read response: {}", e.into())))?;
@@ -1884,7 +1884,6 @@ impl<S, C, B> Api<C> for Client<S, C> where
                     .map_err(|e| ApiError(format!("Response was not valid UTF8: {e}")))?;
                 let body = serde_json::from_str::<models::Client>(body)
                     .map_err(|e| ApiError(format!("Response body did not match the schema: {e}")))?;
-
 
                 Ok(TestClassnameResponse::SuccessfulOperation
                     (body)
@@ -1950,10 +1949,7 @@ impl<S, C, B> Api<C> for Client<S, C> where
         *request.body_mut() = body_from_string(body);
 
         let header = "application/json";
-        request.headers_mut().insert(CONTENT_TYPE, match HeaderValue::from_str(header) {
-            Ok(h) => h,
-            Err(e) => return Err(ApiError(format!("Unable to create header: {header} - {e}")))
-        });
+        request.headers_mut().insert(CONTENT_TYPE, HeaderValue::from_static(header));
 
         let header = HeaderValue::from_str(Has::<XSpanIdString>::get(context).0.as_str());
         request.headers_mut().insert(HeaderName::from_static("x-span-id"), match header {
@@ -1964,7 +1960,9 @@ impl<S, C, B> Api<C> for Client<S, C> where
         #[allow(clippy::collapsible_match)]
         if let Some(auth_data) = Has::<Option<AuthData>>::get(context).as_ref() {
             use headers::authorization::Credentials;
-            #[allow(clippy::single_match, clippy::match_single_binding)]
+            // The trailing `_` arm is unreachable when the spec declares every kind of
+            // scheme `AuthData` can represent, and the workspace denies warnings.
+            #[allow(unreachable_patterns, clippy::single_match, clippy::match_single_binding)]
             match auth_data {
                 AuthData::Bearer(ref bearer_header) => {
                     let header = match headers::Authorization::bearer(&bearer_header.to_string()) {
@@ -2007,9 +2005,9 @@ impl<S, C, B> Api<C> for Client<S, C> where
     }
 
     #[allow(clippy::vec_init_then_push)]
-    async fn find_pets_by_status(
+    async fn find_pets_by_status<'a>(
         &self,
-        param_status: &Vec<models::FindPetsByStatusStatusParameterInner>,
+        param_status: &'a Vec<models::FindPetsByStatusStatusParameterInner>,
         context: &C) -> Result<FindPetsByStatusResponse, ApiError>
     {
         let mut client_service = self.client_service.clone();
@@ -2053,7 +2051,9 @@ impl<S, C, B> Api<C> for Client<S, C> where
         #[allow(clippy::collapsible_match)]
         if let Some(auth_data) = Has::<Option<AuthData>>::get(context).as_ref() {
             use headers::authorization::Credentials;
-            #[allow(clippy::single_match, clippy::match_single_binding)]
+            // The trailing `_` arm is unreachable when the spec declares every kind of
+            // scheme `AuthData` can represent, and the workspace denies warnings.
+            #[allow(unreachable_patterns, clippy::single_match, clippy::match_single_binding)]
             match auth_data {
                 AuthData::Bearer(ref bearer_header) => {
                     let header = match headers::Authorization::bearer(&bearer_header.to_string()) {
@@ -2073,19 +2073,44 @@ impl<S, C, B> Api<C> for Client<S, C> where
 
         match response.status().as_u16() {
             200 => {
-                let body = response.into_body();
+
+                let (header, body) = response.into_parts();
                 let body = http_body_util::BodyExt::collect(body)
                         .await
                         .map(|f| f.to_bytes().to_vec())
                         .map_err(|e| ApiError(format!("Failed to read response: {}", e.into())))?;
 
-                let body = str::from_utf8(&body)
-                    .map_err(|e| ApiError(format!("Response was not valid UTF8: {e}")))?;
-                // ToDo: this will move to swagger-rs and become a standard From conversion trait
-                // once https://github.com/RReverser/serde-xml-rs/pull/45 is accepted upstream
-                let body = serde_xml_rs::from_str::<Vec<models::Pet>>(body)
-                    .map_err(|e| ApiError(format!("Response body did not match the schema: {e}")))?;
+                // Body has multiple variant schemas
+                let content_type = if let Some(content_type) = header.headers.get(CONTENT_TYPE) {
+                    content_type.to_str()
+                } else {
+                    return Err(ApiError(String::from("Missing content type header")));
+                };
 
+                let content_type = content_type.map(|s|
+                    s.split(';').next().expect("Splitting content type header failed").trim());
+
+                let body = match content_type {
+                    Ok(ct) if ct.eq_ignore_ascii_case("application/xml") => {
+                        let body = str::from_utf8(&body)
+                            .map_err(|e| ApiError(format!("Response was not valid UTF8: {e}")))?;
+                        // ToDo: this will move to swagger-rs and become a standard From conversion trait
+                        // once https://github.com/RReverser/serde-xml-rs/pull/45 is accepted upstream
+                        let body = serde_xml_rs::from_str::<Vec<models::Pet>>(body)
+                            .map_err(|e| ApiError(format!("Response body did not match the schema: {e}")))?;
+                        swagger::OneOf2::<Vec<models::Pet>, Vec<models::Pet>>::A(body)
+                    },
+                    Ok(ct) if ct.eq_ignore_ascii_case("application/json") => {
+                        let body = str::from_utf8(&body)
+                            .map_err(|e| ApiError(format!("Response was not valid UTF8: {e}")))?;
+                        let body = serde_json::from_str::<Vec<models::Pet>>(body)
+                            .map_err(|e| ApiError(format!("Response body did not match the schema: {e}")))?;
+                        swagger::OneOf2::<Vec<models::Pet>, Vec<models::Pet>>::B(body)
+                    },
+                    e => {
+                        return Err(ApiError(format!("Unexpected content type: {:?}", e)));
+                    }
+                };
 
                 Ok(FindPetsByStatusResponse::SuccessfulOperation
                     (body)
@@ -2115,9 +2140,9 @@ impl<S, C, B> Api<C> for Client<S, C> where
     }
 
     #[allow(clippy::vec_init_then_push)]
-    async fn find_pets_by_tags(
+    async fn find_pets_by_tags<'a>(
         &self,
-        param_tags: &Vec<String>,
+        param_tags: &'a Vec<String>,
         context: &C) -> Result<FindPetsByTagsResponse, ApiError>
     {
         let mut client_service = self.client_service.clone();
@@ -2161,7 +2186,9 @@ impl<S, C, B> Api<C> for Client<S, C> where
         #[allow(clippy::collapsible_match)]
         if let Some(auth_data) = Has::<Option<AuthData>>::get(context).as_ref() {
             use headers::authorization::Credentials;
-            #[allow(clippy::single_match, clippy::match_single_binding)]
+            // The trailing `_` arm is unreachable when the spec declares every kind of
+            // scheme `AuthData` can represent, and the workspace denies warnings.
+            #[allow(unreachable_patterns, clippy::single_match, clippy::match_single_binding)]
             match auth_data {
                 AuthData::Bearer(ref bearer_header) => {
                     let header = match headers::Authorization::bearer(&bearer_header.to_string()) {
@@ -2181,19 +2208,44 @@ impl<S, C, B> Api<C> for Client<S, C> where
 
         match response.status().as_u16() {
             200 => {
-                let body = response.into_body();
+
+                let (header, body) = response.into_parts();
                 let body = http_body_util::BodyExt::collect(body)
                         .await
                         .map(|f| f.to_bytes().to_vec())
                         .map_err(|e| ApiError(format!("Failed to read response: {}", e.into())))?;
 
-                let body = str::from_utf8(&body)
-                    .map_err(|e| ApiError(format!("Response was not valid UTF8: {e}")))?;
-                // ToDo: this will move to swagger-rs and become a standard From conversion trait
-                // once https://github.com/RReverser/serde-xml-rs/pull/45 is accepted upstream
-                let body = serde_xml_rs::from_str::<Vec<models::Pet>>(body)
-                    .map_err(|e| ApiError(format!("Response body did not match the schema: {e}")))?;
+                // Body has multiple variant schemas
+                let content_type = if let Some(content_type) = header.headers.get(CONTENT_TYPE) {
+                    content_type.to_str()
+                } else {
+                    return Err(ApiError(String::from("Missing content type header")));
+                };
 
+                let content_type = content_type.map(|s|
+                    s.split(';').next().expect("Splitting content type header failed").trim());
+
+                let body = match content_type {
+                    Ok(ct) if ct.eq_ignore_ascii_case("application/xml") => {
+                        let body = str::from_utf8(&body)
+                            .map_err(|e| ApiError(format!("Response was not valid UTF8: {e}")))?;
+                        // ToDo: this will move to swagger-rs and become a standard From conversion trait
+                        // once https://github.com/RReverser/serde-xml-rs/pull/45 is accepted upstream
+                        let body = serde_xml_rs::from_str::<Vec<models::Pet>>(body)
+                            .map_err(|e| ApiError(format!("Response body did not match the schema: {e}")))?;
+                        swagger::OneOf2::<Vec<models::Pet>, Vec<models::Pet>>::A(body)
+                    },
+                    Ok(ct) if ct.eq_ignore_ascii_case("application/json") => {
+                        let body = str::from_utf8(&body)
+                            .map_err(|e| ApiError(format!("Response was not valid UTF8: {e}")))?;
+                        let body = serde_json::from_str::<Vec<models::Pet>>(body)
+                            .map_err(|e| ApiError(format!("Response body did not match the schema: {e}")))?;
+                        swagger::OneOf2::<Vec<models::Pet>, Vec<models::Pet>>::B(body)
+                    },
+                    e => {
+                        return Err(ApiError(format!("Unexpected content type: {:?}", e)));
+                    }
+                };
 
                 Ok(FindPetsByTagsResponse::SuccessfulOperation
                     (body)
@@ -2264,10 +2316,7 @@ impl<S, C, B> Api<C> for Client<S, C> where
         *request.body_mut() = body_from_string(body);
 
         let header = "application/json";
-        request.headers_mut().insert(CONTENT_TYPE, match HeaderValue::from_str(header) {
-            Ok(h) => h,
-            Err(e) => return Err(ApiError(format!("Unable to create header: {header} - {e}")))
-        });
+        request.headers_mut().insert(CONTENT_TYPE, HeaderValue::from_static(header));
 
         let header = HeaderValue::from_str(Has::<XSpanIdString>::get(context).0.as_str());
         request.headers_mut().insert(HeaderName::from_static("x-span-id"), match header {
@@ -2278,7 +2327,9 @@ impl<S, C, B> Api<C> for Client<S, C> where
         #[allow(clippy::collapsible_match)]
         if let Some(auth_data) = Has::<Option<AuthData>>::get(context).as_ref() {
             use headers::authorization::Credentials;
-            #[allow(clippy::single_match, clippy::match_single_binding)]
+            // The trailing `_` arm is unreachable when the spec declares every kind of
+            // scheme `AuthData` can represent, and the workspace denies warnings.
+            #[allow(unreachable_patterns, clippy::single_match, clippy::match_single_binding)]
             match auth_data {
                 AuthData::Bearer(ref bearer_header) => {
                     let header = match headers::Authorization::bearer(&bearer_header.to_string()) {
@@ -2377,7 +2428,9 @@ impl<S, C, B> Api<C> for Client<S, C> where
         #[allow(clippy::collapsible_match)]
         if let Some(auth_data) = Has::<Option<AuthData>>::get(context).as_ref() {
             use headers::authorization::Credentials;
-            #[allow(clippy::single_match, clippy::match_single_binding)]
+            // The trailing `_` arm is unreachable when the spec declares every kind of
+            // scheme `AuthData` can represent, and the workspace denies warnings.
+            #[allow(unreachable_patterns, clippy::single_match, clippy::match_single_binding)]
             match auth_data {
                 AuthData::Bearer(ref bearer_header) => {
                     let header = match headers::Authorization::bearer(&bearer_header.to_string()) {
@@ -2483,8 +2536,19 @@ impl<S, C, B> Api<C> for Client<S, C> where
         #[allow(clippy::collapsible_match)]
         if let Some(auth_data) = Has::<Option<AuthData>>::get(context).as_ref() {
             use headers::authorization::Credentials;
-            #[allow(clippy::single_match, clippy::match_single_binding)]
+            // The trailing `_` arm is unreachable when the spec declares every kind of
+            // scheme `AuthData` can represent, and the workspace denies warnings.
+            #[allow(unreachable_patterns, clippy::single_match, clippy::match_single_binding)]
             match auth_data {
+                AuthData::ApiKey(ref api_key) => {
+                    let header = match HeaderValue::from_str(api_key.as_str()) {
+                        Ok(h) => h,
+                        Err(e) => return Err(ApiError(format!("Unable to create header: {e}")))
+                    };
+                    request.headers_mut().insert(
+                        HeaderName::from_static("api_key"),
+                        header);
+                },
                 _ => {}
             }
         }
@@ -2494,19 +2558,44 @@ impl<S, C, B> Api<C> for Client<S, C> where
 
         match response.status().as_u16() {
             200 => {
-                let body = response.into_body();
+
+                let (header, body) = response.into_parts();
                 let body = http_body_util::BodyExt::collect(body)
                         .await
                         .map(|f| f.to_bytes().to_vec())
                         .map_err(|e| ApiError(format!("Failed to read response: {}", e.into())))?;
 
-                let body = str::from_utf8(&body)
-                    .map_err(|e| ApiError(format!("Response was not valid UTF8: {e}")))?;
-                // ToDo: this will move to swagger-rs and become a standard From conversion trait
-                // once https://github.com/RReverser/serde-xml-rs/pull/45 is accepted upstream
-                let body = serde_xml_rs::from_str::<models::Pet>(body)
-                    .map_err(|e| ApiError(format!("Response body did not match the schema: {e}")))?;
+                // Body has multiple variant schemas
+                let content_type = if let Some(content_type) = header.headers.get(CONTENT_TYPE) {
+                    content_type.to_str()
+                } else {
+                    return Err(ApiError(String::from("Missing content type header")));
+                };
 
+                let content_type = content_type.map(|s|
+                    s.split(';').next().expect("Splitting content type header failed").trim());
+
+                let body = match content_type {
+                    Ok(ct) if ct.eq_ignore_ascii_case("application/xml") => {
+                        let body = str::from_utf8(&body)
+                            .map_err(|e| ApiError(format!("Response was not valid UTF8: {e}")))?;
+                        // ToDo: this will move to swagger-rs and become a standard From conversion trait
+                        // once https://github.com/RReverser/serde-xml-rs/pull/45 is accepted upstream
+                        let body = serde_xml_rs::from_str::<models::Pet>(body)
+                            .map_err(|e| ApiError(format!("Response body did not match the schema: {e}")))?;
+                        swagger::OneOf2::<models::Pet, models::Pet>::A(body)
+                    },
+                    Ok(ct) if ct.eq_ignore_ascii_case("application/json") => {
+                        let body = str::from_utf8(&body)
+                            .map_err(|e| ApiError(format!("Response was not valid UTF8: {e}")))?;
+                        let body = serde_json::from_str::<models::Pet>(body)
+                            .map_err(|e| ApiError(format!("Response body did not match the schema: {e}")))?;
+                        swagger::OneOf2::<models::Pet, models::Pet>::B(body)
+                    },
+                    e => {
+                        return Err(ApiError(format!("Unexpected content type: {:?}", e)));
+                    }
+                };
 
                 Ok(GetPetByIdResponse::SuccessfulOperation
                     (body)
@@ -2599,10 +2688,7 @@ impl<S, C, B> Api<C> for Client<S, C> where
         *request.body_mut() = body_from_string(body);
 
         let header = "application/x-www-form-urlencoded";
-        request.headers_mut().insert(CONTENT_TYPE, match HeaderValue::from_str(header) {
-            Ok(h) => h,
-            Err(e) => return Err(ApiError(format!("Unable to create header: {header} - {e}")))
-        });
+        request.headers_mut().insert(CONTENT_TYPE, HeaderValue::from_static(header));
 
         let header = HeaderValue::from_str(Has::<XSpanIdString>::get(context).0.as_str());
         request.headers_mut().insert(HeaderName::from_static("x-span-id"), match header {
@@ -2613,7 +2699,9 @@ impl<S, C, B> Api<C> for Client<S, C> where
         #[allow(clippy::collapsible_match)]
         if let Some(auth_data) = Has::<Option<AuthData>>::get(context).as_ref() {
             use headers::authorization::Credentials;
-            #[allow(clippy::single_match, clippy::match_single_binding)]
+            // The trailing `_` arm is unreachable when the spec declares every kind of
+            // scheme `AuthData` can represent, and the workspace denies warnings.
+            #[allow(unreachable_patterns, clippy::single_match, clippy::match_single_binding)]
             match auth_data {
                 AuthData::Bearer(ref bearer_header) => {
                     let header = match headers::Authorization::bearer(&bearer_header.to_string()) {
@@ -2695,7 +2783,7 @@ impl<S, C, B> Api<C> for Client<S, C> where
         };
 
         // Consumes multipart/form body
-        let (body_string, multipart_header) = {
+        let (body_bytes, multipart_header) = {
             let mut multipart = Multipart::new();
 
             // For each parameter, encode as appropriate and add to the multipart body as a stream.
@@ -2711,7 +2799,6 @@ impl<S, C, B> Api<C> for Client<S, C> where
 
             multipart.add_stream("additional_metadata",  additional_metadata_cursor,  None as Option<&str>, Some(additional_metadata_mime));
 
-
             let file_str = match serde_json::to_string(&param_file) {
                 Ok(str) => str,
                 Err(e) => return Err(ApiError(format!("Unable to serialize file to string: {e}"))),
@@ -2723,15 +2810,14 @@ impl<S, C, B> Api<C> for Client<S, C> where
 
             multipart.add_stream("file",  file_cursor,  None as Option<&str>, Some(file_mime));
 
-
             let mut fields = match multipart.prepare() {
                 Ok(fields) => fields,
                 Err(err) => return Err(ApiError(format!("Unable to build request: {err}"))),
             };
 
-            let mut body_string = String::new();
+            let mut body_bytes = Vec::new();
 
-            match fields.read_to_string(&mut body_string) {
+            match fields.read_to_end(&mut body_bytes) {
                 Ok(_) => (),
                 Err(err) => return Err(ApiError(format!("Unable to build body: {err}"))),
             }
@@ -2740,16 +2826,15 @@ impl<S, C, B> Api<C> for Client<S, C> where
 
             let multipart_header = format!("multipart/form-data;boundary={boundary}");
 
-            (body_string, multipart_header)
-        };
+            (body_bytes, multipart_header)
+          };
 
-        *request.body_mut() = body_from_string(body_string);
+        *request.body_mut() = BoxBody::new(Full::new(Bytes::from(body_bytes)));
 
         request.headers_mut().insert(CONTENT_TYPE, match HeaderValue::from_str(&multipart_header) {
             Ok(h) => h,
             Err(e) => return Err(ApiError(format!("Unable to create header: {multipart_header} - {e}")))
         });
-
 
         let header = HeaderValue::from_str(Has::<XSpanIdString>::get(context).0.as_str());
         request.headers_mut().insert(HeaderName::from_static("x-span-id"), match header {
@@ -2760,7 +2845,9 @@ impl<S, C, B> Api<C> for Client<S, C> where
         #[allow(clippy::collapsible_match)]
         if let Some(auth_data) = Has::<Option<AuthData>>::get(context).as_ref() {
             use headers::authorization::Credentials;
-            #[allow(clippy::single_match, clippy::match_single_binding)]
+            // The trailing `_` arm is unreachable when the spec declares every kind of
+            // scheme `AuthData` can represent, and the workspace denies warnings.
+            #[allow(unreachable_patterns, clippy::single_match, clippy::match_single_binding)]
             match auth_data {
                 AuthData::Bearer(ref bearer_header) => {
                     let header = match headers::Authorization::bearer(&bearer_header.to_string()) {
@@ -2780,8 +2867,8 @@ impl<S, C, B> Api<C> for Client<S, C> where
 
         match response.status().as_u16() {
             200 => {
-                let body = response.into_body();
-                let body = http_body_util::BodyExt::collect(body)
+
+                let body = http_body_util::BodyExt::collect(response.into_body())
                         .await
                         .map(|f| f.to_bytes().to_vec())
                         .map_err(|e| ApiError(format!("Failed to read response: {}", e.into())))?;
@@ -2790,7 +2877,6 @@ impl<S, C, B> Api<C> for Client<S, C> where
                     .map_err(|e| ApiError(format!("Response was not valid UTF8: {e}")))?;
                 let body = serde_json::from_str::<models::ApiResponse>(body)
                     .map_err(|e| ApiError(format!("Response body did not match the schema: {e}")))?;
-
 
                 Ok(UploadFileResponse::SuccessfulOperation
                     (body)
@@ -2858,8 +2944,19 @@ impl<S, C, B> Api<C> for Client<S, C> where
         #[allow(clippy::collapsible_match)]
         if let Some(auth_data) = Has::<Option<AuthData>>::get(context).as_ref() {
             use headers::authorization::Credentials;
-            #[allow(clippy::single_match, clippy::match_single_binding)]
+            // The trailing `_` arm is unreachable when the spec declares every kind of
+            // scheme `AuthData` can represent, and the workspace denies warnings.
+            #[allow(unreachable_patterns, clippy::single_match, clippy::match_single_binding)]
             match auth_data {
+                AuthData::ApiKey(ref api_key) => {
+                    let header = match HeaderValue::from_str(api_key.as_str()) {
+                        Ok(h) => h,
+                        Err(e) => return Err(ApiError(format!("Unable to create header: {e}")))
+                    };
+                    request.headers_mut().insert(
+                        HeaderName::from_static("api_key"),
+                        header);
+                },
                 _ => {}
             }
         }
@@ -2869,8 +2966,8 @@ impl<S, C, B> Api<C> for Client<S, C> where
 
         match response.status().as_u16() {
             200 => {
-                let body = response.into_body();
-                let body = http_body_util::BodyExt::collect(body)
+
+                let body = http_body_util::BodyExt::collect(response.into_body())
                         .await
                         .map(|f| f.to_bytes().to_vec())
                         .map_err(|e| ApiError(format!("Failed to read response: {}", e.into())))?;
@@ -2879,7 +2976,6 @@ impl<S, C, B> Api<C> for Client<S, C> where
                     .map_err(|e| ApiError(format!("Response was not valid UTF8: {e}")))?;
                 let body = serde_json::from_str::<std::collections::HashMap<String, i32>>(body)
                     .map_err(|e| ApiError(format!("Response body did not match the schema: {e}")))?;
-
 
                 Ok(GetInventoryResponse::SuccessfulOperation
                     (body)
@@ -2945,10 +3041,7 @@ impl<S, C, B> Api<C> for Client<S, C> where
         *request.body_mut() = body_from_string(body);
 
         let header = "application/json";
-        request.headers_mut().insert(CONTENT_TYPE, match HeaderValue::from_str(header) {
-            Ok(h) => h,
-            Err(e) => return Err(ApiError(format!("Unable to create header: {header} - {e}")))
-        });
+        request.headers_mut().insert(CONTENT_TYPE, HeaderValue::from_static(header));
 
         let header = HeaderValue::from_str(Has::<XSpanIdString>::get(context).0.as_str());
         request.headers_mut().insert(HeaderName::from_static("x-span-id"), match header {
@@ -2961,19 +3054,44 @@ impl<S, C, B> Api<C> for Client<S, C> where
 
         match response.status().as_u16() {
             200 => {
-                let body = response.into_body();
+
+                let (header, body) = response.into_parts();
                 let body = http_body_util::BodyExt::collect(body)
                         .await
                         .map(|f| f.to_bytes().to_vec())
                         .map_err(|e| ApiError(format!("Failed to read response: {}", e.into())))?;
 
-                let body = str::from_utf8(&body)
-                    .map_err(|e| ApiError(format!("Response was not valid UTF8: {e}")))?;
-                // ToDo: this will move to swagger-rs and become a standard From conversion trait
-                // once https://github.com/RReverser/serde-xml-rs/pull/45 is accepted upstream
-                let body = serde_xml_rs::from_str::<models::Order>(body)
-                    .map_err(|e| ApiError(format!("Response body did not match the schema: {e}")))?;
+                // Body has multiple variant schemas
+                let content_type = if let Some(content_type) = header.headers.get(CONTENT_TYPE) {
+                    content_type.to_str()
+                } else {
+                    return Err(ApiError(String::from("Missing content type header")));
+                };
 
+                let content_type = content_type.map(|s|
+                    s.split(';').next().expect("Splitting content type header failed").trim());
+
+                let body = match content_type {
+                    Ok(ct) if ct.eq_ignore_ascii_case("application/xml") => {
+                        let body = str::from_utf8(&body)
+                            .map_err(|e| ApiError(format!("Response was not valid UTF8: {e}")))?;
+                        // ToDo: this will move to swagger-rs and become a standard From conversion trait
+                        // once https://github.com/RReverser/serde-xml-rs/pull/45 is accepted upstream
+                        let body = serde_xml_rs::from_str::<models::Order>(body)
+                            .map_err(|e| ApiError(format!("Response body did not match the schema: {e}")))?;
+                        swagger::OneOf2::<models::Order, models::Order>::A(body)
+                    },
+                    Ok(ct) if ct.eq_ignore_ascii_case("application/json") => {
+                        let body = str::from_utf8(&body)
+                            .map_err(|e| ApiError(format!("Response was not valid UTF8: {e}")))?;
+                        let body = serde_json::from_str::<models::Order>(body)
+                            .map_err(|e| ApiError(format!("Response body did not match the schema: {e}")))?;
+                        swagger::OneOf2::<models::Order, models::Order>::B(body)
+                    },
+                    e => {
+                        return Err(ApiError(format!("Unexpected content type: {:?}", e)));
+                    }
+                };
 
                 Ok(PlaceOrderResponse::SuccessfulOperation
                     (body)
@@ -3080,7 +3198,7 @@ impl<S, C, B> Api<C> for Client<S, C> where
     #[allow(clippy::vec_init_then_push)]
     async fn get_order_by_id(
         &self,
-        param_order_id: i64,
+        param_order_id: u64,
         context: &C) -> Result<GetOrderByIdResponse, ApiError>
     {
         let mut client_service = self.client_service.clone();
@@ -3125,19 +3243,44 @@ impl<S, C, B> Api<C> for Client<S, C> where
 
         match response.status().as_u16() {
             200 => {
-                let body = response.into_body();
+
+                let (header, body) = response.into_parts();
                 let body = http_body_util::BodyExt::collect(body)
                         .await
                         .map(|f| f.to_bytes().to_vec())
                         .map_err(|e| ApiError(format!("Failed to read response: {}", e.into())))?;
 
-                let body = str::from_utf8(&body)
-                    .map_err(|e| ApiError(format!("Response was not valid UTF8: {e}")))?;
-                // ToDo: this will move to swagger-rs and become a standard From conversion trait
-                // once https://github.com/RReverser/serde-xml-rs/pull/45 is accepted upstream
-                let body = serde_xml_rs::from_str::<models::Order>(body)
-                    .map_err(|e| ApiError(format!("Response body did not match the schema: {e}")))?;
+                // Body has multiple variant schemas
+                let content_type = if let Some(content_type) = header.headers.get(CONTENT_TYPE) {
+                    content_type.to_str()
+                } else {
+                    return Err(ApiError(String::from("Missing content type header")));
+                };
 
+                let content_type = content_type.map(|s|
+                    s.split(';').next().expect("Splitting content type header failed").trim());
+
+                let body = match content_type {
+                    Ok(ct) if ct.eq_ignore_ascii_case("application/xml") => {
+                        let body = str::from_utf8(&body)
+                            .map_err(|e| ApiError(format!("Response was not valid UTF8: {e}")))?;
+                        // ToDo: this will move to swagger-rs and become a standard From conversion trait
+                        // once https://github.com/RReverser/serde-xml-rs/pull/45 is accepted upstream
+                        let body = serde_xml_rs::from_str::<models::Order>(body)
+                            .map_err(|e| ApiError(format!("Response body did not match the schema: {e}")))?;
+                        swagger::OneOf2::<models::Order, models::Order>::A(body)
+                    },
+                    Ok(ct) if ct.eq_ignore_ascii_case("application/json") => {
+                        let body = str::from_utf8(&body)
+                            .map_err(|e| ApiError(format!("Response was not valid UTF8: {e}")))?;
+                        let body = serde_json::from_str::<models::Order>(body)
+                            .map_err(|e| ApiError(format!("Response body did not match the schema: {e}")))?;
+                        swagger::OneOf2::<models::Order, models::Order>::B(body)
+                    },
+                    e => {
+                        return Err(ApiError(format!("Unexpected content type: {:?}", e)));
+                    }
+                };
 
                 Ok(GetOrderByIdResponse::SuccessfulOperation
                     (body)
@@ -3213,10 +3356,7 @@ impl<S, C, B> Api<C> for Client<S, C> where
         *request.body_mut() = body_from_string(body);
 
         let header = "application/json";
-        request.headers_mut().insert(CONTENT_TYPE, match HeaderValue::from_str(header) {
-            Ok(h) => h,
-            Err(e) => return Err(ApiError(format!("Unable to create header: {header} - {e}")))
-        });
+        request.headers_mut().insert(CONTENT_TYPE, HeaderValue::from_static(header));
 
         let header = HeaderValue::from_str(Has::<XSpanIdString>::get(context).0.as_str());
         request.headers_mut().insert(HeaderName::from_static("x-span-id"), match header {
@@ -3252,9 +3392,9 @@ impl<S, C, B> Api<C> for Client<S, C> where
     }
 
     #[allow(clippy::vec_init_then_push)]
-    async fn create_users_with_array_input(
+    async fn create_users_with_array_input<'a>(
         &self,
-        param_body: &Vec<models::User>,
+        param_body: &'a Vec<models::User>,
         context: &C) -> Result<CreateUsersWithArrayInputResponse, ApiError>
     {
         let mut client_service = self.client_service.clone();
@@ -3293,10 +3433,7 @@ impl<S, C, B> Api<C> for Client<S, C> where
         *request.body_mut() = body_from_string(body);
 
         let header = "application/json";
-        request.headers_mut().insert(CONTENT_TYPE, match HeaderValue::from_str(header) {
-            Ok(h) => h,
-            Err(e) => return Err(ApiError(format!("Unable to create header: {header} - {e}")))
-        });
+        request.headers_mut().insert(CONTENT_TYPE, HeaderValue::from_static(header));
 
         let header = HeaderValue::from_str(Has::<XSpanIdString>::get(context).0.as_str());
         request.headers_mut().insert(HeaderName::from_static("x-span-id"), match header {
@@ -3332,9 +3469,9 @@ impl<S, C, B> Api<C> for Client<S, C> where
     }
 
     #[allow(clippy::vec_init_then_push)]
-    async fn create_users_with_list_input(
+    async fn create_users_with_list_input<'a>(
         &self,
-        param_body: &Vec<models::User>,
+        param_body: &'a Vec<models::User>,
         context: &C) -> Result<CreateUsersWithListInputResponse, ApiError>
     {
         let mut client_service = self.client_service.clone();
@@ -3373,10 +3510,7 @@ impl<S, C, B> Api<C> for Client<S, C> where
         *request.body_mut() = body_from_string(body);
 
         let header = "application/json";
-        request.headers_mut().insert(CONTENT_TYPE, match HeaderValue::from_str(header) {
-            Ok(h) => h,
-            Err(e) => return Err(ApiError(format!("Unable to create header: {header} - {e}")))
-        });
+        request.headers_mut().insert(CONTENT_TYPE, HeaderValue::from_static(header));
 
         let header = HeaderValue::from_str(Has::<XSpanIdString>::get(context).0.as_str());
         request.headers_mut().insert(HeaderName::from_static("x-span-id"), match header {
@@ -3463,7 +3597,8 @@ impl<S, C, B> Api<C> for Client<S, C> where
 
         match response.status().as_u16() {
             200 => {
-                let response_x_rate_limit = match response.headers().get(HeaderName::from_static("x-rate-limit")) {
+                let (header, body) = response.into_parts();
+                let response_x_rate_limit = match header.headers.get(HeaderName::from_static("x-rate-limit")) {
                     Some(response_x_rate_limit) => {
                         let response_x_rate_limit = response_x_rate_limit.clone();
                         let response_x_rate_limit = match TryInto::<header::IntoHeaderValue<i32>>::try_into(response_x_rate_limit) {
@@ -3477,7 +3612,7 @@ impl<S, C, B> Api<C> for Client<S, C> where
                     None => None,
                 };
 
-                let response_x_expires_after = match response.headers().get(HeaderName::from_static("x-expires-after")) {
+                let response_x_expires_after = match header.headers.get(HeaderName::from_static("x-expires-after")) {
                     Some(response_x_expires_after) => {
                         let response_x_expires_after = response_x_expires_after.clone();
                         let response_x_expires_after = match TryInto::<header::IntoHeaderValue<chrono::DateTime::<chrono::Utc>>>::try_into(response_x_expires_after) {
@@ -3491,19 +3626,44 @@ impl<S, C, B> Api<C> for Client<S, C> where
                     None => None,
                 };
 
-                let body = response.into_body();
+
                 let body = http_body_util::BodyExt::collect(body)
+
                         .await
                         .map(|f| f.to_bytes().to_vec())
                         .map_err(|e| ApiError(format!("Failed to read response: {}", e.into())))?;
 
-                let body = str::from_utf8(&body)
-                    .map_err(|e| ApiError(format!("Response was not valid UTF8: {e}")))?;
-                // ToDo: this will move to swagger-rs and become a standard From conversion trait
-                // once https://github.com/RReverser/serde-xml-rs/pull/45 is accepted upstream
-                let body = serde_xml_rs::from_str::<String>(body)
-                    .map_err(|e| ApiError(format!("Response body did not match the schema: {e}")))?;
+                // Body has multiple variant schemas
+                let content_type = if let Some(content_type) = header.headers.get(CONTENT_TYPE) {
+                    content_type.to_str()
+                } else {
+                    return Err(ApiError(String::from("Missing content type header")));
+                };
 
+                let content_type = content_type.map(|s|
+                    s.split(';').next().expect("Splitting content type header failed").trim());
+
+                let body = match content_type {
+                    Ok(ct) if ct.eq_ignore_ascii_case("application/xml") => {
+                        let body = str::from_utf8(&body)
+                            .map_err(|e| ApiError(format!("Response was not valid UTF8: {e}")))?;
+                        // ToDo: this will move to swagger-rs and become a standard From conversion trait
+                        // once https://github.com/RReverser/serde-xml-rs/pull/45 is accepted upstream
+                        let body = serde_xml_rs::from_str::<String>(body)
+                            .map_err(|e| ApiError(format!("Response body did not match the schema: {e}")))?;
+                        swagger::OneOf2::<String, String>::A(body)
+                    },
+                    Ok(ct) if ct.eq_ignore_ascii_case("application/json") => {
+                        let body = str::from_utf8(&body)
+                            .map_err(|e| ApiError(format!("Response was not valid UTF8: {e}")))?;
+                        let body = serde_json::from_str::<String>(body)
+                            .map_err(|e| ApiError(format!("Response body did not match the schema: {e}")))?;
+                        swagger::OneOf2::<String, String>::B(body)
+                    },
+                    e => {
+                        return Err(ApiError(format!("Unexpected content type: {:?}", e)));
+                    }
+                };
 
                 Ok(LoginUserResponse::SuccessfulOperation
                     {
@@ -3727,19 +3887,44 @@ impl<S, C, B> Api<C> for Client<S, C> where
 
         match response.status().as_u16() {
             200 => {
-                let body = response.into_body();
+
+                let (header, body) = response.into_parts();
                 let body = http_body_util::BodyExt::collect(body)
                         .await
                         .map(|f| f.to_bytes().to_vec())
                         .map_err(|e| ApiError(format!("Failed to read response: {}", e.into())))?;
 
-                let body = str::from_utf8(&body)
-                    .map_err(|e| ApiError(format!("Response was not valid UTF8: {e}")))?;
-                // ToDo: this will move to swagger-rs and become a standard From conversion trait
-                // once https://github.com/RReverser/serde-xml-rs/pull/45 is accepted upstream
-                let body = serde_xml_rs::from_str::<models::User>(body)
-                    .map_err(|e| ApiError(format!("Response body did not match the schema: {e}")))?;
+                // Body has multiple variant schemas
+                let content_type = if let Some(content_type) = header.headers.get(CONTENT_TYPE) {
+                    content_type.to_str()
+                } else {
+                    return Err(ApiError(String::from("Missing content type header")));
+                };
 
+                let content_type = content_type.map(|s|
+                    s.split(';').next().expect("Splitting content type header failed").trim());
+
+                let body = match content_type {
+                    Ok(ct) if ct.eq_ignore_ascii_case("application/xml") => {
+                        let body = str::from_utf8(&body)
+                            .map_err(|e| ApiError(format!("Response was not valid UTF8: {e}")))?;
+                        // ToDo: this will move to swagger-rs and become a standard From conversion trait
+                        // once https://github.com/RReverser/serde-xml-rs/pull/45 is accepted upstream
+                        let body = serde_xml_rs::from_str::<models::User>(body)
+                            .map_err(|e| ApiError(format!("Response body did not match the schema: {e}")))?;
+                        swagger::OneOf2::<models::User, models::User>::A(body)
+                    },
+                    Ok(ct) if ct.eq_ignore_ascii_case("application/json") => {
+                        let body = str::from_utf8(&body)
+                            .map_err(|e| ApiError(format!("Response was not valid UTF8: {e}")))?;
+                        let body = serde_json::from_str::<models::User>(body)
+                            .map_err(|e| ApiError(format!("Response body did not match the schema: {e}")))?;
+                        swagger::OneOf2::<models::User, models::User>::B(body)
+                    },
+                    e => {
+                        return Err(ApiError(format!("Unexpected content type: {:?}", e)));
+                    }
+                };
 
                 Ok(GetUserByNameResponse::SuccessfulOperation
                     (body)
@@ -3817,10 +4002,7 @@ impl<S, C, B> Api<C> for Client<S, C> where
         *request.body_mut() = body_from_string(body);
 
         let header = "application/json";
-        request.headers_mut().insert(CONTENT_TYPE, match HeaderValue::from_str(header) {
-            Ok(h) => h,
-            Err(e) => return Err(ApiError(format!("Unable to create header: {header} - {e}")))
-        });
+        request.headers_mut().insert(CONTENT_TYPE, HeaderValue::from_static(header));
 
         let header = HeaderValue::from_str(Has::<XSpanIdString>::get(context).0.as_str());
         request.headers_mut().insert(HeaderName::from_static("x-span-id"), match header {

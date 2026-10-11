@@ -44,14 +44,14 @@ public class ChildWithNullable extends ParentWithNullable {
   
   public static final String JSON_PROPERTY_OTHER_PROPERTY = "otherProperty";
   
-  private String otherProperty;
+  protected String otherProperty;
 
 
   /**
    * Get otherProperty
    * @return otherProperty
    **/
-  @JsonProperty(JSON_PROPERTY_OTHER_PROPERTY)
+  @JsonProperty(value = JSON_PROPERTY_OTHER_PROPERTY, required = false)
   @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
   public String getOtherProperty() {
     return otherProperty;
@@ -60,7 +60,7 @@ public class ChildWithNullable extends ParentWithNullable {
   /**
    * Set otherProperty
    */
-  @JsonProperty(JSON_PROPERTY_OTHER_PROPERTY)
+  @JsonProperty(value = JSON_PROPERTY_OTHER_PROPERTY, required = false)
   @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
   public void setOtherProperty(String otherProperty) {
     this.otherProperty = otherProperty;
@@ -99,10 +99,7 @@ public class ChildWithNullable extends ParentWithNullable {
    * (except the first line).
    */
   private static String toIndentedString(Object o) {
-    if (o == null) {
-      return "null";
-    }
-    return o.toString().replace("\n", "\n    ");
+    return o == null ? "null" : o.toString().replace("\n", "\n    ");
   }
 }
 

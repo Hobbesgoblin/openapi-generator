@@ -35,14 +35,14 @@ public class NumberOnly  {
   
   public static final String JSON_PROPERTY_JUST_NUMBER = "JustNumber";
   
-  private BigDecimal justNumber;
+  protected BigDecimal justNumber;
 
 
   /**
    * Get justNumber
    * @return justNumber
    **/
-  @JsonProperty(JSON_PROPERTY_JUST_NUMBER)
+  @JsonProperty(value = JSON_PROPERTY_JUST_NUMBER, required = false)
   @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
   public BigDecimal getJustNumber() {
     return justNumber;
@@ -51,7 +51,7 @@ public class NumberOnly  {
   /**
    * Set justNumber
    */
-  @JsonProperty(JSON_PROPERTY_JUST_NUMBER)
+  @JsonProperty(value = JSON_PROPERTY_JUST_NUMBER, required = false)
   @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
   public void setJustNumber(BigDecimal justNumber) {
     this.justNumber = justNumber;
@@ -90,10 +90,7 @@ public class NumberOnly  {
    * (except the first line).
    */
   private static String toIndentedString(Object o) {
-    if (o == null) {
-      return "null";
-    }
-    return o.toString().replace("\n", "\n    ");
+    return o == null ? "null" : o.toString().replace("\n", "\n    ");
   }
 }
 

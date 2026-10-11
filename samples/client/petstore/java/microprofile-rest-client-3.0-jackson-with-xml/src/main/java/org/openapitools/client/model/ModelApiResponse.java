@@ -49,22 +49,22 @@ public class ModelApiResponse  {
   
   public static final String JSON_PROPERTY_CODE = "code";
   @XmlElement(name = "code")
-  private Integer code;
+  protected Integer code;
 
   public static final String JSON_PROPERTY_TYPE = "type";
   @XmlElement(name = "type")
-  private String type;
+  protected String type;
 
   public static final String JSON_PROPERTY_MESSAGE = "message";
   @XmlElement(name = "message")
-  private String message;
+  protected String message;
 
 
   /**
    * Get code
    * @return code
    **/
-  @JsonProperty(JSON_PROPERTY_CODE)
+  @JsonProperty(value = JSON_PROPERTY_CODE, required = false)
   @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
   @JacksonXmlProperty(localName = "code")
   public Integer getCode() {
@@ -74,7 +74,7 @@ public class ModelApiResponse  {
   /**
    * Set code
    */
-  @JsonProperty(JSON_PROPERTY_CODE)
+  @JsonProperty(value = JSON_PROPERTY_CODE, required = false)
   @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
   @JacksonXmlProperty(localName = "code")
   public void setCode(Integer code) {
@@ -90,7 +90,7 @@ public class ModelApiResponse  {
    * Get type
    * @return type
    **/
-  @JsonProperty(JSON_PROPERTY_TYPE)
+  @JsonProperty(value = JSON_PROPERTY_TYPE, required = false)
   @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
   @JacksonXmlProperty(localName = "type")
   public String getType() {
@@ -100,7 +100,7 @@ public class ModelApiResponse  {
   /**
    * Set type
    */
-  @JsonProperty(JSON_PROPERTY_TYPE)
+  @JsonProperty(value = JSON_PROPERTY_TYPE, required = false)
   @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
   @JacksonXmlProperty(localName = "type")
   public void setType(String type) {
@@ -116,7 +116,7 @@ public class ModelApiResponse  {
    * Get message
    * @return message
    **/
-  @JsonProperty(JSON_PROPERTY_MESSAGE)
+  @JsonProperty(value = JSON_PROPERTY_MESSAGE, required = false)
   @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
   @JacksonXmlProperty(localName = "message")
   public String getMessage() {
@@ -126,7 +126,7 @@ public class ModelApiResponse  {
   /**
    * Set message
    */
-  @JsonProperty(JSON_PROPERTY_MESSAGE)
+  @JsonProperty(value = JSON_PROPERTY_MESSAGE, required = false)
   @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
   @JacksonXmlProperty(localName = "message")
   public void setMessage(String message) {
@@ -177,10 +177,7 @@ public class ModelApiResponse  {
    * (except the first line).
    */
   private static String toIndentedString(Object o) {
-    if (o == null) {
-      return "null";
-    }
-    return o.toString().replace("\n", "\n    ");
+    return o == null ? "null" : o.toString().replace("\n", "\n    ");
   }
 }
 

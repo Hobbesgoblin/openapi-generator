@@ -40,19 +40,19 @@ public class Name  {
   
   public static final String JSON_PROPERTY_NAME = "name";
   
-  private Integer name;
+  protected Integer name;
 
   public static final String JSON_PROPERTY_SNAKE_CASE = "snake_case";
   
-  private Integer snakeCase;
+  protected Integer snakeCase;
 
   public static final String JSON_PROPERTY_PROPERTY = "property";
   
-  private String property;
+  protected String property;
 
   public static final String JSON_PROPERTY_123NUMBER = "123Number";
   
-  private Integer _123number;
+  protected Integer _123number;
 
 
   public Name() {
@@ -71,7 +71,7 @@ public class Name  {
    * Get name
    * @return name
    **/
-  @JsonProperty(JSON_PROPERTY_NAME)
+  @JsonProperty(value = JSON_PROPERTY_NAME, required = true)
   @JsonInclude(value = JsonInclude.Include.ALWAYS)
   public Integer getName() {
     return name;
@@ -80,7 +80,7 @@ public class Name  {
   /**
    * Set name
    */
-  @JsonProperty(JSON_PROPERTY_NAME)
+  @JsonProperty(value = JSON_PROPERTY_NAME, required = true)
   @JsonInclude(value = JsonInclude.Include.ALWAYS)
   public void setName(Integer name) {
     this.name = name;
@@ -95,7 +95,7 @@ public class Name  {
    * Get snakeCase
    * @return snakeCase
    **/
-  @JsonProperty(JSON_PROPERTY_SNAKE_CASE)
+  @JsonProperty(value = JSON_PROPERTY_SNAKE_CASE, required = false)
   @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
   public Integer getSnakeCase() {
     return snakeCase;
@@ -106,7 +106,7 @@ public class Name  {
    * Get property
    * @return property
    **/
-  @JsonProperty(JSON_PROPERTY_PROPERTY)
+  @JsonProperty(value = JSON_PROPERTY_PROPERTY, required = false)
   @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
   public String getProperty() {
     return property;
@@ -115,7 +115,7 @@ public class Name  {
   /**
    * Set property
    */
-  @JsonProperty(JSON_PROPERTY_PROPERTY)
+  @JsonProperty(value = JSON_PROPERTY_PROPERTY, required = false)
   @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
   public void setProperty(String property) {
     this.property = property;
@@ -130,7 +130,7 @@ public class Name  {
    * Get _123number
    * @return _123number
    **/
-  @JsonProperty(JSON_PROPERTY_123NUMBER)
+  @JsonProperty(value = JSON_PROPERTY_123NUMBER, required = false)
   @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
   public Integer get123number() {
     return _123number;
@@ -168,10 +168,7 @@ public class Name  {
    * (except the first line).
    */
   private static String toIndentedString(Object o) {
-    if (o == null) {
-      return "null";
-    }
-    return o.toString().replace("\n", "\n    ");
+    return o == null ? "null" : o.toString().replace("\n", "\n    ");
   }
 }
 

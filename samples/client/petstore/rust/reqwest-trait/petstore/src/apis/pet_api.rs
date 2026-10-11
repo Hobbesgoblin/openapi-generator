@@ -174,7 +174,6 @@ impl PetApi for PetApiClient {
                 "multi" => local_var_req_builder.query(&param_value.into_iter().map(|p| ("type".to_owned(), p.to_string())).collect::<Vec<(std::string::String, std::string::String)>>()),
                 _ => local_var_req_builder.query(&[("type", &param_value.into_iter().map(|p| p.to_string()).collect::<Vec<String>>().join(",").to_string())]),
             };
-            local_var_req_builder = local_var_req_builder.query(&[("type", &param_value.to_string())]);
         }
         if let Some(ref local_var_user_agent) = local_var_configuration.user_agent {
             local_var_req_builder = local_var_req_builder.header(reqwest::header::USER_AGENT, local_var_user_agent.clone());
@@ -481,7 +480,9 @@ impl PetApi for PetApiClient {
         if let Some(local_var_param_value) = additional_metadata {
             local_var_form = local_var_form.text("additionalMetadata", local_var_param_value.to_string());
         }
-        // TODO: support file upload for 'file' parameter
+        if let Some(ref path) = file {
+            local_var_form = local_var_form.file("file", path.as_os_str()).await?;
+        }
         local_var_req_builder = local_var_req_builder.multipart(local_var_form);
 
         let local_var_req = local_var_req_builder.build()?;

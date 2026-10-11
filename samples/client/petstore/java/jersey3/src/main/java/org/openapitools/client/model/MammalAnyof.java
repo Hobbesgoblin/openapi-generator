@@ -49,21 +49,21 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import org.openapitools.client.JSON;
 
-@jakarta.annotation.Generated(value = "org.openapitools.codegen.languages.JavaClientCodegen", comments = "Generator version: 7.15.0-SNAPSHOT")
+@jakarta.annotation.Generated(value = "org.openapitools.codegen.languages.JavaClientCodegen", comments = "Generator version: 7.27.0-SNAPSHOT")
 @JsonDeserialize(using=MammalAnyof.MammalAnyofDeserializer.class)
 @JsonSerialize(using = MammalAnyof.MammalAnyofSerializer.class)
 public class MammalAnyof extends AbstractOpenApiSchema {
@@ -95,7 +95,7 @@ public class MammalAnyof extends AbstractOpenApiSchema {
 
         @Override
         public MammalAnyof deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException, JsonProcessingException {
-            JsonNode tree = jp.readValueAsTree();
+            JsonNode tree = ctxt.readTree(jp);
 
             Object deserialized = null;
             Class<?> cls = JSON.getClassForElement(tree, new MammalAnyof().getClass());
@@ -141,7 +141,7 @@ public class MammalAnyof extends AbstractOpenApiSchema {
                 log.log(Level.FINER, "Input data does not match 'MammalAnyof'", e);
             }
 
-            throw new IOException(String.format("Failed deserialization for MammalAnyof: no match found"));
+            throw new IOException("Failed deserialization for MammalAnyof: no match found");
         }
 
         /**

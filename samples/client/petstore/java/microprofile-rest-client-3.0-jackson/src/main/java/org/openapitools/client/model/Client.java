@@ -34,14 +34,14 @@ public class Client  {
   
   public static final String JSON_PROPERTY_CLIENT = "client";
   
-  private String client;
+  protected String client;
 
 
   /**
    * Get client
    * @return client
    **/
-  @JsonProperty(JSON_PROPERTY_CLIENT)
+  @JsonProperty(value = JSON_PROPERTY_CLIENT, required = false)
   @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
   public String getClient() {
     return client;
@@ -50,7 +50,7 @@ public class Client  {
   /**
    * Set client
    */
-  @JsonProperty(JSON_PROPERTY_CLIENT)
+  @JsonProperty(value = JSON_PROPERTY_CLIENT, required = false)
   @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
   public void setClient(String client) {
     this.client = client;
@@ -89,10 +89,7 @@ public class Client  {
    * (except the first line).
    */
   private static String toIndentedString(Object o) {
-    if (o == null) {
-      return "null";
-    }
-    return o.toString().replace("\n", "\n    ");
+    return o == null ? "null" : o.toString().replace("\n", "\n    ");
   }
 }
 

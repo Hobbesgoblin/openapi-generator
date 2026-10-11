@@ -35,11 +35,11 @@ public class ReadOnlyFirst  {
   
   public static final String JSON_PROPERTY_BAR = "bar";
   
-  private String bar;
+  protected String bar;
 
   public static final String JSON_PROPERTY_BAZ = "baz";
   
-  private String baz;
+  protected String baz;
 
 
   public ReadOnlyFirst() {
@@ -56,7 +56,7 @@ public class ReadOnlyFirst  {
    * Get bar
    * @return bar
    **/
-  @JsonProperty(JSON_PROPERTY_BAR)
+  @JsonProperty(value = JSON_PROPERTY_BAR, required = false)
   @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
   public String getBar() {
     return bar;
@@ -67,7 +67,7 @@ public class ReadOnlyFirst  {
    * Get baz
    * @return baz
    **/
-  @JsonProperty(JSON_PROPERTY_BAZ)
+  @JsonProperty(value = JSON_PROPERTY_BAZ, required = false)
   @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
   public String getBaz() {
     return baz;
@@ -76,7 +76,7 @@ public class ReadOnlyFirst  {
   /**
    * Set baz
    */
-  @JsonProperty(JSON_PROPERTY_BAZ)
+  @JsonProperty(value = JSON_PROPERTY_BAZ, required = false)
   @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
   public void setBaz(String baz) {
     this.baz = baz;
@@ -116,10 +116,7 @@ public class ReadOnlyFirst  {
    * (except the first line).
    */
   private static String toIndentedString(Object o) {
-    if (o == null) {
-      return "null";
-    }
-    return o.toString().replace("\n", "\n    ");
+    return o == null ? "null" : o.toString().replace("\n", "\n    ");
   }
 }
 

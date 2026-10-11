@@ -637,6 +637,16 @@ paths:
               - '-efg'
               - (xyz)
             default: '-efg'
+            x-enum-descriptions:
+              - |
+                line1
+                line2
+              - |
+                line3
+                line4
+              - |
+                line5
+                line6
         - name: enum_query_string_array
           in: query
           description: Query parameter enum test (string array)
@@ -1303,6 +1313,19 @@ paths:
       responses:
         200:
           description: The instance started successfully
+  /fake/duplicate-inline-enums:
+    get:
+      tags:
+        - fake
+      summary: test objects with duplicate inline enums see issue# 21582
+      operationId: fake-duplicate-inline-enum
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ObjectThatReferencesObjectsWithDuplicateInlineEnums'
 servers:
   - url: 'http://{server}.swagger.io:{port}/v2'
     description: petstore server
@@ -1414,6 +1437,16 @@ components:
             - placed
             - approved
             - delivered
+          x-enum-descriptions:
+            - |
+              line1
+              line2
+            - |
+              line3
+              line4
+            - |
+              line5
+              line6
         complete:
           type: boolean
           default: false
@@ -1718,6 +1751,12 @@ components:
             type: object
             additionalProperties:
               type: string
+        map_of_array_integer:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: integer
     MixedPropertiesAndAdditionalPropertiesClass:
       type: object
       properties:
@@ -1915,8 +1954,9 @@ components:
       properties:
         type:
           type: string
-          enum:
-            - ChildWithNullable
+          # comment out as it's causing compilation errors in Dart Dio client generator
+          #enum:
+          #  - ChildWithNullable
         nullableProperty:
           type: string
           nullable: true
@@ -2065,19 +2105,91 @@ components:
     TestEnum:
       type: string
       enum:
-        - ""
-        - "1"
-        - "2"
+        - ''
+        - 'value_one'
+        - 'value_two'
+      x-enum-descriptions:
+        - |
+          line1
+          line2
+        - |
+          line3
+          line4
+        - |
+          line5
+          line6
       title: TestEnum
-    TestItem:
+    ObjectWithEnum:
+      type: object
+      properties:
+        attribute:
+          allOf:
+            - $ref: '#/components/schemas/TestEnum'
+          default: ''
+      title: ObjectWithEnum
+    ObjectWithInlineEnumDefaultValue:
+      type: object
+      properties:
+        attribute:
+          description: 'Object one attribute enum with default value'
+          type: 'string'
+          enum: [
+            'value_one',
+            'value_two'
+          ]
+          default: 'value_one'
+    ObjectWithInlineEnum:
+      type: object
+      properties:
+        attribute:
+          description: 'Object one attribute enum'
+          type: 'array'
+          uniqueItems: true
+          items:
+            type: 'string'
+            enum: [
+              'value_one',
+              'value_two'
+            ]
+    ObjectWithDuplicateInlineEnum:
+      type: object
+      properties:
+        attribute:
+          description: 'Object two attribute enum'
+          type: 'array'
+          uniqueItems: true
+          items:
+            type: 'string'
+            enum: [
+              'value_one',
+              'value_two'
+            ]
+    ObjectThatReferencesObjectsWithDuplicateInlineEnums:
+      type: object
+      properties:
+        object_one:
+          $ref: '#/components/schemas/ObjectWithInlineEnum'
+        object_two:
+          $ref: '#/components/schemas/ObjectWithDuplicateInlineEnum'
+    getUserInfoResponse:
       type: object
       required:
-        - test
+      - sub
+      - updated_at
       properties:
-        test:
-          type: integer
-          title: test
-        testEmum:
-          $ref: '#/components/schemas/TestEnum'
-          default: ""
-      title: TestItem
+        email:
+          description: Email address of user, if available
+          type: string
+          format: email
+          maxLength: 255
+          example: user@example.com
+        scopes:
+          description: Auth-Scopes of the user, if available
+          type: array
+          items:
+            type: string
+            enum:
+            - app
+            - cms
+          example:
+          - app

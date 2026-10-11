@@ -44,7 +44,7 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
   DefaultValue.JSON_PROPERTY_ARRAY_STRING_EXTENSION_NULLABLE,
   DefaultValue.JSON_PROPERTY_STRING_NULLABLE
 })
-@javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaClientCodegen", comments = "Generator version: 7.15.0-SNAPSHOT")
+@javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaClientCodegen", comments = "Generator version: 7.27.0-SNAPSHOT")
 public class DefaultValue {
   public static final String JSON_PROPERTY_ARRAY_STRING_ENUM_REF_DEFAULT = "array_string_enum_ref_default";
   @javax.annotation.Nullable
@@ -126,7 +126,7 @@ public class DefaultValue {
 
   public DefaultValue addArrayStringEnumRefDefaultItem(StringEnumRef arrayStringEnumRefDefaultItem) {
     if (this.arrayStringEnumRefDefault == null) {
-      this.arrayStringEnumRefDefault = new ArrayList<>(Arrays.asList(StringEnumRef.SUCCESS, StringEnumRef.FAILURE));
+      this.arrayStringEnumRefDefault = new ArrayList<>();
     }
     this.arrayStringEnumRefDefault.add(arrayStringEnumRefDefaultItem);
     return this;
@@ -137,7 +137,7 @@ public class DefaultValue {
    * @return arrayStringEnumRefDefault
    */
   @javax.annotation.Nullable
-  @JsonProperty(JSON_PROPERTY_ARRAY_STRING_ENUM_REF_DEFAULT)
+  @JsonProperty(value = JSON_PROPERTY_ARRAY_STRING_ENUM_REF_DEFAULT, required = false)
   @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
 
   public List<StringEnumRef> getArrayStringEnumRefDefault() {
@@ -145,7 +145,7 @@ public class DefaultValue {
   }
 
 
-  @JsonProperty(JSON_PROPERTY_ARRAY_STRING_ENUM_REF_DEFAULT)
+  @JsonProperty(value = JSON_PROPERTY_ARRAY_STRING_ENUM_REF_DEFAULT, required = false)
   @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
   public void setArrayStringEnumRefDefault(@javax.annotation.Nullable List<StringEnumRef> arrayStringEnumRefDefault) {
     this.arrayStringEnumRefDefault = arrayStringEnumRefDefault;
@@ -159,7 +159,7 @@ public class DefaultValue {
 
   public DefaultValue addArrayStringEnumDefaultItem(ArrayStringEnumDefaultEnum arrayStringEnumDefaultItem) {
     if (this.arrayStringEnumDefault == null) {
-      this.arrayStringEnumDefault = new ArrayList<>(Arrays.asList(ArrayStringEnumDefaultEnum.SUCCESS, ArrayStringEnumDefaultEnum.FAILURE));
+      this.arrayStringEnumDefault = new ArrayList<>();
     }
     this.arrayStringEnumDefault.add(arrayStringEnumDefaultItem);
     return this;
@@ -170,7 +170,7 @@ public class DefaultValue {
    * @return arrayStringEnumDefault
    */
   @javax.annotation.Nullable
-  @JsonProperty(JSON_PROPERTY_ARRAY_STRING_ENUM_DEFAULT)
+  @JsonProperty(value = JSON_PROPERTY_ARRAY_STRING_ENUM_DEFAULT, required = false)
   @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
 
   public List<ArrayStringEnumDefaultEnum> getArrayStringEnumDefault() {
@@ -178,7 +178,7 @@ public class DefaultValue {
   }
 
 
-  @JsonProperty(JSON_PROPERTY_ARRAY_STRING_ENUM_DEFAULT)
+  @JsonProperty(value = JSON_PROPERTY_ARRAY_STRING_ENUM_DEFAULT, required = false)
   @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
   public void setArrayStringEnumDefault(@javax.annotation.Nullable List<ArrayStringEnumDefaultEnum> arrayStringEnumDefault) {
     this.arrayStringEnumDefault = arrayStringEnumDefault;
@@ -192,7 +192,7 @@ public class DefaultValue {
 
   public DefaultValue addArrayStringDefaultItem(String arrayStringDefaultItem) {
     if (this.arrayStringDefault == null) {
-      this.arrayStringDefault = new ArrayList<>(Arrays.asList("failure", "skipped"));
+      this.arrayStringDefault = new ArrayList<>();
     }
     this.arrayStringDefault.add(arrayStringDefaultItem);
     return this;
@@ -203,7 +203,7 @@ public class DefaultValue {
    * @return arrayStringDefault
    */
   @javax.annotation.Nullable
-  @JsonProperty(JSON_PROPERTY_ARRAY_STRING_DEFAULT)
+  @JsonProperty(value = JSON_PROPERTY_ARRAY_STRING_DEFAULT, required = false)
   @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
 
   public List<String> getArrayStringDefault() {
@@ -211,7 +211,7 @@ public class DefaultValue {
   }
 
 
-  @JsonProperty(JSON_PROPERTY_ARRAY_STRING_DEFAULT)
+  @JsonProperty(value = JSON_PROPERTY_ARRAY_STRING_DEFAULT, required = false)
   @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
   public void setArrayStringDefault(@javax.annotation.Nullable List<String> arrayStringDefault) {
     this.arrayStringDefault = arrayStringDefault;
@@ -225,7 +225,7 @@ public class DefaultValue {
 
   public DefaultValue addArrayIntegerDefaultItem(Integer arrayIntegerDefaultItem) {
     if (this.arrayIntegerDefault == null) {
-      this.arrayIntegerDefault = new ArrayList<>(Arrays.asList(1, 3));
+      this.arrayIntegerDefault = new ArrayList<>();
     }
     this.arrayIntegerDefault.add(arrayIntegerDefaultItem);
     return this;
@@ -236,7 +236,7 @@ public class DefaultValue {
    * @return arrayIntegerDefault
    */
   @javax.annotation.Nullable
-  @JsonProperty(JSON_PROPERTY_ARRAY_INTEGER_DEFAULT)
+  @JsonProperty(value = JSON_PROPERTY_ARRAY_INTEGER_DEFAULT, required = false)
   @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
 
   public List<Integer> getArrayIntegerDefault() {
@@ -244,7 +244,7 @@ public class DefaultValue {
   }
 
 
-  @JsonProperty(JSON_PROPERTY_ARRAY_INTEGER_DEFAULT)
+  @JsonProperty(value = JSON_PROPERTY_ARRAY_INTEGER_DEFAULT, required = false)
   @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
   public void setArrayIntegerDefault(@javax.annotation.Nullable List<Integer> arrayIntegerDefault) {
     this.arrayIntegerDefault = arrayIntegerDefault;
@@ -269,7 +269,7 @@ public class DefaultValue {
    * @return arrayString
    */
   @javax.annotation.Nullable
-  @JsonProperty(JSON_PROPERTY_ARRAY_STRING)
+  @JsonProperty(value = JSON_PROPERTY_ARRAY_STRING, required = false)
   @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
 
   public List<String> getArrayString() {
@@ -277,7 +277,7 @@ public class DefaultValue {
   }
 
 
-  @JsonProperty(JSON_PROPERTY_ARRAY_STRING)
+  @JsonProperty(value = JSON_PROPERTY_ARRAY_STRING, required = false)
   @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
   public void setArrayString(@javax.annotation.Nullable List<String> arrayString) {
     this.arrayString = arrayString;
@@ -290,7 +290,7 @@ public class DefaultValue {
   }
 
   public DefaultValue addArrayStringNullableItem(String arrayStringNullableItem) {
-    if (this.arrayStringNullable == null || !this.arrayStringNullable.isPresent()) {
+    if (this.arrayStringNullable == null || !this.arrayStringNullable.isPresent() || this.arrayStringNullable.get() == null) {
       this.arrayStringNullable = JsonNullable.<List<String>>of(new ArrayList<>());
     }
     try {
@@ -312,14 +312,14 @@ public class DefaultValue {
         return arrayStringNullable.orElse(null);
   }
 
-  @JsonProperty(JSON_PROPERTY_ARRAY_STRING_NULLABLE)
+  @JsonProperty(value = JSON_PROPERTY_ARRAY_STRING_NULLABLE, required = false)
   @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
 
   public JsonNullable<List<String>> getArrayStringNullable_JsonNullable() {
     return arrayStringNullable;
   }
   
-  @JsonProperty(JSON_PROPERTY_ARRAY_STRING_NULLABLE)
+  @JsonProperty(value = JSON_PROPERTY_ARRAY_STRING_NULLABLE, required = false)
   public void setArrayStringNullable_JsonNullable(JsonNullable<List<String>> arrayStringNullable) {
     this.arrayStringNullable = arrayStringNullable;
   }
@@ -335,7 +335,7 @@ public class DefaultValue {
   }
 
   public DefaultValue addArrayStringExtensionNullableItem(String arrayStringExtensionNullableItem) {
-    if (this.arrayStringExtensionNullable == null || !this.arrayStringExtensionNullable.isPresent()) {
+    if (this.arrayStringExtensionNullable == null || !this.arrayStringExtensionNullable.isPresent() || this.arrayStringExtensionNullable.get() == null) {
       this.arrayStringExtensionNullable = JsonNullable.<List<String>>of(new ArrayList<>());
     }
     try {
@@ -357,14 +357,14 @@ public class DefaultValue {
         return arrayStringExtensionNullable.orElse(null);
   }
 
-  @JsonProperty(JSON_PROPERTY_ARRAY_STRING_EXTENSION_NULLABLE)
+  @JsonProperty(value = JSON_PROPERTY_ARRAY_STRING_EXTENSION_NULLABLE, required = false)
   @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
 
   public JsonNullable<List<String>> getArrayStringExtensionNullable_JsonNullable() {
     return arrayStringExtensionNullable;
   }
   
-  @JsonProperty(JSON_PROPERTY_ARRAY_STRING_EXTENSION_NULLABLE)
+  @JsonProperty(value = JSON_PROPERTY_ARRAY_STRING_EXTENSION_NULLABLE, required = false)
   public void setArrayStringExtensionNullable_JsonNullable(JsonNullable<List<String>> arrayStringExtensionNullable) {
     this.arrayStringExtensionNullable = arrayStringExtensionNullable;
   }
@@ -390,14 +390,14 @@ public class DefaultValue {
         return stringNullable.orElse(null);
   }
 
-  @JsonProperty(JSON_PROPERTY_STRING_NULLABLE)
+  @JsonProperty(value = JSON_PROPERTY_STRING_NULLABLE, required = false)
   @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
 
   public JsonNullable<String> getStringNullable_JsonNullable() {
     return stringNullable;
   }
   
-  @JsonProperty(JSON_PROPERTY_STRING_NULLABLE)
+  @JsonProperty(value = JSON_PROPERTY_STRING_NULLABLE, required = false)
   public void setStringNullable_JsonNullable(JsonNullable<String> stringNullable) {
     this.stringNullable = stringNullable;
   }
@@ -405,6 +405,7 @@ public class DefaultValue {
   public void setStringNullable(@javax.annotation.Nullable String stringNullable) {
     this.stringNullable = JsonNullable.<String>of(stringNullable);
   }
+
 
   @Override
   public boolean equals(Object o) {
@@ -462,10 +463,7 @@ public class DefaultValue {
    * (except the first line).
    */
   private String toIndentedString(Object o) {
-    if (o == null) {
-      return "null";
-    }
-    return o.toString().replace("\n", "\n    ");
+    return o == null ? "null" : o.toString().replace("\n", "\n    ");
   }
 
 }

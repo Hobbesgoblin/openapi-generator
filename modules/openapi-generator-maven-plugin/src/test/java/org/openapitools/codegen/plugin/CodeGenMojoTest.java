@@ -38,6 +38,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -82,10 +83,22 @@ public class CodeGenMojoTest extends BaseTestCase {
         assertEquals("remote.org.openapitools.client.api", getVariableValueFromObject(mojo, "apiPackage"));
         assertEquals("remote.org.openapitools.client.model", getVariableValueFromObject(mojo, "modelPackage"));
         assertEquals("remote.org.openapitools.client", getVariableValueFromObject(mojo, "invokerPackage"));
+        assertEquals(Boolean.TRUE, getVariableValueFromObject(mojo, "quiet"));
 
         Map<String, Object> configOptions = (Map<String, Object>) getVariableValueFromObject(mojo, "configOptions");
         assertNotNull(configOptions);
         assertEquals("joda", configOptions.get("dateLibrary"));
+    }
+
+    public void testMinimalUpdateConfiguration() throws Exception {
+        // GIVEN
+        CodeGenMojo mojo = loadMojo(newTempFolder(), "src/test/resources/minimal-update", null);
+
+        // WHEN
+        mojo.execute();
+
+        // THEN
+        assertEquals(Boolean.TRUE, getVariableValueFromObject(mojo, "minimalUpdate"));
     }
 
     public void testHashGenerationFileContainsExecutionId() throws Exception {
@@ -134,6 +147,50 @@ public class CodeGenMojoTest extends BaseTestCase {
         // THEN
         /* Verify that the source directory has not been repopulated. If it has then we generated code again */
         assertFalse("src directory should not have been regenerated", Files.exists(generatedDir.resolve("src")));
+    }
+
+    public void testMinimalUpdate() throws Exception {
+        //GIVEN
+        /* Set up the mojo */
+        final Path tempDir = newTempFolder();
+        final CodeGenMojo mojo = loadMojo(tempDir, "src/test/resources/minimal-update", null, "executionId");
+
+        /* Perform an initial generation */
+        mojo.execute();
+
+        /* Collect last modified times of generated files */
+        final Path generatedDir = tempDir.resolve("target/generated-sources/minimal-update");
+        assertTrue("Generated directory should exist", Files.exists(generatedDir));
+
+        Map<Path, Long> lastModifiedTimes = new HashMap<>();
+        try (Stream<Path> files = Files.walk(generatedDir)) {
+            files
+                .filter(Files::isRegularFile)
+                .filter(path -> !path.getFileName().toString().endsWith(".sha256"))
+                .filter(path -> !path.getFileName().toString().equals("FILES"))
+                .forEach(file -> {
+                    try {
+                        lastModifiedTimes.put(file, Files.getLastModifiedTime(file).toMillis());
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                });
+        }
+        assertTrue("Should have recorded last modified times for more than 3 files", lastModifiedTimes.size() > 3);
+
+        // WHEN
+        /* Execute the mojo again */
+        mojo.execute();
+
+        // THEN
+        /* Verify that file modification times haven't changed (files weren't touched) */
+        for (Map.Entry<Path, Long> entry : lastModifiedTimes.entrySet()) {
+            Path file = entry.getKey();
+            Long originalTime = entry.getValue();
+            Long currentTime = Files.getLastModifiedTime(file).toMillis();
+            assertEquals("File " + file + " should not have been modified (minimal update should skip unchanged files)",
+                originalTime, currentTime);
+        }
     }
 
     /**
@@ -213,7 +270,7 @@ public class CodeGenMojoTest extends BaseTestCase {
         MojoExecutionException e = assertThrows(MojoExecutionException.class, mojo::execute);
 
         // THEN
-        assertEquals("inputSpec or inputSpecRootDirectory must be specified", e.getMessage());
+        assertEquals("inputSpec, inputSpecRootDirectory, or inputSpecFiles must be specified", e.getMessage());
     }
 
     public void testInputSpecRootDirectoryDoesNotRequireInputSpec() throws Exception {
@@ -221,7 +278,7 @@ public class CodeGenMojoTest extends BaseTestCase {
         final Path tempDir = newTempFolder();
         CodeGenMojo mojo = loadMojo(tempDir, "src/test/resources/default", "file", "executionId");
         mojo.inputSpec = null;
-        mojo.inputSpecRootDirectory = "src/test/resources/default";
+        mojo.inputSpecRootDirectory = new File("src/test/resources/default").getAbsolutePath();
 
         // WHEN
         mojo.execute();
@@ -242,7 +299,7 @@ public class CodeGenMojoTest extends BaseTestCase {
         final Path generatedDir = tempDir.resolve("target/generated-sources/issue-16489");
         final Path hashFile = generatedDir.resolve(".openapi-generator/petstore.yaml-default.sha256");
         final CodeGenMojo mojo = loadMojo(tempDir, "src/test/resources/issue-16489", null);
-        mojo.execute(); // Perform an initial generation 
+        mojo.execute(); // Perform an initial generation
         var currentHash = Files.readString(hashFile);   // read hash
         FileUtils.deleteDirectory(generatedDir.resolve("src").toFile());    // Remove the generated source
         Files.writeString(  // change schema definition in external file

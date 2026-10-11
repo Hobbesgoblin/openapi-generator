@@ -22,6 +22,7 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.JsonValue;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.annotation.JsonTypeName;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 /**
  * ModelList
@@ -30,7 +31,7 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
   ModelList.JSON_PROPERTY_123LIST
 })
 @JsonTypeName("List")
-@javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaClientCodegen", comments = "Generator version: 7.15.0-SNAPSHOT")
+@javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaClientCodegen", comments = "Generator version: 7.27.0-SNAPSHOT")
 public class ModelList {
   public static final String JSON_PROPERTY_123LIST = "123-list";
   @javax.annotation.Nullable
@@ -42,7 +43,7 @@ public class ModelList {
   /**
    * Constructor with all args parameters
    */
-  public ModelList(@JsonProperty(JSON_PROPERTY_123LIST) String _123list) {
+  public ModelList(@JsonProperty(JSON_PROPERTY_123LIST) @javax.annotation.Nullable String _123list) {
     this._123list = _123list;
   }
 
@@ -57,7 +58,7 @@ public class ModelList {
    * @return _123list
    */
   @javax.annotation.Nullable
-  @JsonProperty(JSON_PROPERTY_123LIST)
+  @JsonProperty(value = JSON_PROPERTY_123LIST, required = false)
   @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
 
   public String get123list() {
@@ -65,7 +66,7 @@ public class ModelList {
   }
 
 
-  @JsonProperty(JSON_PROPERTY_123LIST)
+  @JsonProperty(value = JSON_PROPERTY_123LIST, required = false)
   @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
   public void set123list(@javax.annotation.Nullable String _123list) {
     this._123list = _123list;
@@ -103,10 +104,7 @@ public class ModelList {
    * (except the first line).
    */
   private String toIndentedString(Object o) {
-    if (o == null) {
-      return "null";
-    }
-    return o.toString().replace("\n", "\n    ");
+    return o == null ? "null" : o.toString().replace("\n", "\n    ");
   }
 
   public static class Builder {

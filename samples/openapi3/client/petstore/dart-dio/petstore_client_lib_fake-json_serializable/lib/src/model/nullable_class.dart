@@ -3,11 +3,13 @@
 //
 
 // ignore_for_file: unused_element
+import 'package:copy_with_extension/copy_with_extension.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'nullable_class.g.dart';
 
 
+@CopyWith()
 @JsonSerializable(
   checked: true,
   createToJson: true,
@@ -135,7 +137,7 @@ class NullableClass {
   )
 
 
-  final List<Object>? arrayAndItemsNullableProp;
+  final List<Object?>? arrayAndItemsNullableProp;
 
 
 
@@ -147,7 +149,7 @@ class NullableClass {
   )
 
 
-  final List<Object>? arrayItemsNullable;
+  final List<Object?>? arrayItemsNullable;
 
 
 
@@ -171,7 +173,7 @@ class NullableClass {
   )
 
 
-  final Map<String, Object>? objectAndItemsNullableProp;
+  final Map<String, Object?>? objectAndItemsNullableProp;
 
 
 
@@ -183,7 +185,7 @@ class NullableClass {
   )
 
 
-  final Map<String, Object>? objectItemsNullable;
+  final Map<String, Object?>? objectItemsNullable;
 
 
 

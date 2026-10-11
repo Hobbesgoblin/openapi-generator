@@ -32,7 +32,7 @@ import org.hibernate.validator.constraints.*;
 /**
  * ArrayTest
  */
-@javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaClientCodegen", comments = "Generator version: 7.15.0-SNAPSHOT")
+@javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaClientCodegen", comments = "Generator version: 7.27.0-SNAPSHOT")
 public class ArrayTest {
   public static final String SERIALIZED_NAME_ARRAY_OF_STRING = "array_of_string";
   @SerializedName(SERIALIZED_NAME_ARRAY_OF_STRING)
@@ -101,7 +101,6 @@ public class ArrayTest {
    * @return arrayArrayOfInteger
    */
   @javax.annotation.Nullable
-  @Valid
 
 
   public List<List<Long>> getArrayArrayOfInteger() {
@@ -132,7 +131,6 @@ public class ArrayTest {
    * @return arrayArrayOfModel
    */
   @javax.annotation.Nullable
-  @Valid
 
 
   public List<List<@Valid ReadOnlyFirst>> getArrayArrayOfModel() {
@@ -143,6 +141,7 @@ public class ArrayTest {
   public void setArrayArrayOfModel(@javax.annotation.Nullable List<List<@Valid ReadOnlyFirst>> arrayArrayOfModel) {
     this.arrayArrayOfModel = arrayArrayOfModel;
   }
+
 
   @Override
   public boolean equals(Object o) {
@@ -179,10 +178,7 @@ public class ArrayTest {
    * (except the first line).
    */
   private String toIndentedString(Object o) {
-    if (o == null) {
-      return "null";
-    }
-    return o.toString().replace("\n", "\n    ");
+    return o == null ? "null" : o.toString().replace("\n", "\n    ");
   }
 
 }

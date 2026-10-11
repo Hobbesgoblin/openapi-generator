@@ -25,6 +25,7 @@ import lombok.Setter;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.openapitools.codegen.*;
+import org.openapitools.codegen.model.EnumVarMap;
 import org.openapitools.codegen.model.ModelMap;
 import org.openapitools.codegen.model.ModelsMap;
 import org.openapitools.codegen.model.OperationMap;
@@ -37,7 +38,11 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.util.*;
 
+import static org.openapitools.codegen.CodegenConstants.X_ENUM_BYTE;
+import static org.openapitools.codegen.CodegenConstants.X_EXAMPLE;
+import static org.openapitools.codegen.model.EnumVarMap.ENUM_VARS;
 import static org.openapitools.codegen.utils.CamelizeOption.LOWERCASE_FIRST_LETTER;
+import static org.openapitools.codegen.utils.EnumUtils.getEnumVars;
 import static org.openapitools.codegen.utils.StringUtils.camelize;
 import static org.openapitools.codegen.utils.StringUtils.underscore;
 
@@ -395,7 +400,6 @@ public abstract class AbstractFSharpCodegen extends DefaultCodegen implements Co
      *
      * @param models processed models to be further processed for enum references
      */
-    @SuppressWarnings("unchecked")
     private void postProcessEnumRefs(final Map<String, ModelsMap> models) {
         Map<String, CodegenModel> enumRefs = new HashMap<>();
         for (String key : models.keySet()) {
@@ -433,7 +437,7 @@ public abstract class AbstractFSharpCodegen extends DefaultCodegen implements Co
                     if (model.dataType.startsWith("byte")) {
                         // F# Actually supports byte and short enums, swagger spec only supports byte.
                         isByte = true;
-                        model.vendorExtensions.put("x-enum-byte", true);
+                        model.vendorExtensions.put(X_ENUM_BYTE, true);
                     } else if (model.dataType.startsWith("int32")) {
                         isInteger = true;
                         model.vendorExtensions.put("x-enum-integer", true);
@@ -448,12 +452,12 @@ public abstract class AbstractFSharpCodegen extends DefaultCodegen implements Co
 
                     // Since we iterate enumVars for modelInnerEnum and enumClass templates, and CodegenModel is missing some of CodegenProperty's properties,
                     // we can take advantage of Mustache's contextual lookup to add the same "properties" to the model's enumVars scope rather than CodegenProperty's scope.
-                    List<Map<String, String>> enumVars = (ArrayList<Map<String, String>>) model.allowableValues.get("enumVars");
-                    List<Map<String, Object>> newEnumVars = new ArrayList<>();
-                    for (Map<String, String> enumVar : enumVars) {
-                        Map<String, Object> mixedVars = new HashMap<>(enumVar);
+                    List<EnumVarMap> enumVars = getEnumVars(model.allowableValues);
+                    List<EnumVarMap> newEnumVars = new ArrayList<>();
+                    for (EnumVarMap enumVar : enumVars) {
+                        EnumVarMap mixedVars = new EnumVarMap(enumVar);
 
-                        mixedVars.put("isString", isString);
+                        mixedVars.isString(isString);
                         mixedVars.put("isLong", isLong);
                         mixedVars.put("isInteger", isInteger);
                         mixedVars.put("isByte", isByte);
@@ -462,7 +466,7 @@ public abstract class AbstractFSharpCodegen extends DefaultCodegen implements Co
                     }
 
                     if (!newEnumVars.isEmpty()) {
-                        model.allowableValues.put("enumVars", newEnumVars);
+                        model.allowableValues.put(ENUM_VARS, newEnumVars);
                     }
                 }
             } else {
@@ -472,7 +476,7 @@ public abstract class AbstractFSharpCodegen extends DefaultCodegen implements Co
     }
 
     /**
-     * Update codegen property's enum by adding "enumVars" (with name and value)
+     * Update codegen property's enum by adding {@value EnumVarMap#ENUM_VARS} (with name and value)
      *
      * @param var list of CodegenProperty
      */
@@ -487,7 +491,7 @@ public abstract class AbstractFSharpCodegen extends DefaultCodegen implements Co
         // Because C# uses nullable primitives for datatype, and datatype is used in DefaultCodegen for determining enum-ness, guard against weirdness here.
         if (var.isEnum) {
             if ("byte".equals(var.dataFormat)) {// C# Actually supports byte and short enums.
-                var.vendorExtensions.put("x-enum-byte", true);
+                var.vendorExtensions.put(X_ENUM_BYTE, true);
                 var.isString = false;
                 var.isLong = false;
                 var.isInteger = false;
@@ -1004,8 +1008,8 @@ public abstract class AbstractFSharpCodegen extends DefaultCodegen implements Co
         // set the example value
         // if not specified in x-example, generate a default value
         // TODO need to revise how to obtain the example value
-        if (codegenParameter.vendorExtensions != null && codegenParameter.vendorExtensions.containsKey("x-example")) {
-            codegenParameter.example = Json.pretty(codegenParameter.vendorExtensions.get("x-example"));
+        if (codegenParameter.vendorExtensions != null && codegenParameter.vendorExtensions.containsKey(X_EXAMPLE)) {
+            codegenParameter.example = Json.pretty(codegenParameter.vendorExtensions.get(X_EXAMPLE));
         } else if (Boolean.TRUE.equals(codegenParameter.isBoolean)) {
             codegenParameter.example = "true";
         } else if (Boolean.TRUE.equals(codegenParameter.isLong)) {

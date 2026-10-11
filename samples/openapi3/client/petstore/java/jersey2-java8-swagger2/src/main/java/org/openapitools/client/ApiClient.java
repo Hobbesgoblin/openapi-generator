@@ -85,7 +85,7 @@ import org.openapitools.client.auth.OAuth;
 /**
  * <p>ApiClient class.</p>
  */
-@javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaClientCodegen", comments = "Generator version: 7.15.0-SNAPSHOT")
+@javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaClientCodegen", comments = "Generator version: 7.27.0-SNAPSHOT")
 public class ApiClient extends JavaTimeFormatter {
   protected static final Pattern JSON_MIME_PATTERN = Pattern.compile("(?i)^(application/json|[^;/ \t]+/[^;/ \t]+[+]json)[ \t]*(;.*)?$");
 
@@ -879,6 +879,41 @@ public class ApiClient extends JavaTimeFormatter {
   }
 
   /**
+   * Format the given collection as a path parameter value according to the collection format.
+   * Each item is escaped individually, so that the delimiter is preserved (e.g. "a,b,c" for csv).
+   *
+   * @param collectionFormat Collection format (csv by default)
+   * @param value Collection value
+   * @return Escaped path parameter value
+   */
+  public String collectionPathParameterToString(String collectionFormat, Collection<?> value) {
+    if (value == null || value.isEmpty()) {
+      return "";
+    }
+
+    // "multi" is not valid for path params, fall back to csv
+    String delimiter = ",";
+    if ("ssv".equals(collectionFormat)) {
+      delimiter = escapeString(" ");
+    } else if ("tsv".equals(collectionFormat)) {
+      delimiter = escapeString("\t");
+    } else if ("pipes".equals(collectionFormat)) {
+      delimiter = escapeString("|");
+    }
+
+    StringBuilder sb = new StringBuilder();
+    boolean first = true;
+    for (Object item : value) {
+      if (!first) {
+        sb.append(delimiter);
+      }
+      sb.append(escapeString(parameterToString(item)));
+      first = false;
+    }
+    return sb.toString();
+  }
+
+  /**
    * Serialize the given Java object into string entity according the given
    * Content-Type (only JSON is supported for now).
    *
@@ -1126,6 +1161,7 @@ public class ApiClient extends JavaTimeFormatter {
       if (index < 0 || index >= serverConfigurations.size()) {
         throw new ArrayIndexOutOfBoundsException(
             String.format(
+                java.util.Locale.ROOT,
                 "Invalid index %d when selecting the host settings. Must be less than %d",
                 index, serverConfigurations.size()));
       }
@@ -1195,10 +1231,8 @@ public class ApiClient extends JavaTimeFormatter {
     try {
       response = sendRequest(method, invocationBuilder, entity);
 
-      final int statusCode = response.getStatusInfo().getStatusCode();
-
       // If OAuth is used and a status 401 is received, renew the access token and retry the request
-      if (authNames != null && statusCode == Status.UNAUTHORIZED.getStatusCode()) {
+      if (authNames != null && response.getStatusInfo().getStatusCode() == Status.UNAUTHORIZED.getStatusCode()) {
         for (String authName : authNames) {
           Authentication authentication = authentications.get(authName);
           if (authentication instanceof OAuth) {
@@ -1212,6 +1246,8 @@ public class ApiClient extends JavaTimeFormatter {
           }
         }
       }
+      
+      final int statusCode = response.getStatusInfo().getStatusCode();
 
       Map<String, List<String>> responseHeaders = buildResponseHeaders(response);
 

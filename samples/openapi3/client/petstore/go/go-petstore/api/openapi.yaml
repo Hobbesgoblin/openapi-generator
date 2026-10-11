@@ -9,6 +9,7 @@ info:
   title: OpenAPI Petstore
   version: 1.0.0
 servers:
+- url: http://localhost/v2
 - description: petstore server
   url: "http://{server}.swagger.io:{port}/v2"
   variables:
@@ -24,7 +25,7 @@ servers:
       - "80"
       - "8080"
 - description: The local server
-  url: "https://localhost:8080/{version}"
+  url: "http://localhost:8080/{version}"
   variables:
     version:
       default: v2
@@ -32,7 +33,7 @@ servers:
       - v1
       - v2
 - description: The local server without variables
-  url: https://127.0.0.1/no_variable
+  url: http://127.0.0.1/no_variable
 tags:
 - description: Everything about your Pets
   name: pet
@@ -100,6 +101,7 @@ paths:
       tags:
       - pet
     servers:
+    - url: http://localhost/v2
     - url: http://petstore.swagger.io/v2
     - url: http://path-server-test.petstore.local/v2
   /pet/findByStatus:
@@ -1265,6 +1267,52 @@ paths:
               schema:
                 type: object
           description: success
+  /fake/query-array-with-default-values:
+    post:
+      operationId: query_array_with_default_values
+      parameters:
+      - explode: true
+        in: query
+        name: arrayparam
+        required: false
+        schema:
+          default:
+          - test1
+          - test2
+          items:
+            type: string
+          type: array
+        style: form
+      - explode: true
+        in: query
+        name: enumarrayparam
+        required: false
+        schema:
+          default:
+          - example1
+          items:
+            $ref: "#/components/schemas/ExampleEnum"
+          type: array
+        style: form
+      - explode: true
+        in: query
+        name: stringparam
+        required: false
+        schema:
+          default: test3
+          type: string
+        style: form
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: string
+      responses:
+        "200":
+          description: Ok
+      summary: to test query array with default values
+      tags:
+      - fake
 components:
   requestBodies:
     UserArray:
@@ -1361,12 +1409,12 @@ components:
       type: string
     Order:
       example:
+        id: 0
         petId: 6
         quantity: 1
-        id: 0
         shipDate: 2000-01-23T04:56:07.000+00:00
-        complete: false
         status: placed
+        complete: false
       properties:
         id:
           format: int64
@@ -1395,8 +1443,8 @@ components:
         name: Order
     Category:
       example:
-        name: default-name
         id: 6
+        name: default-name
       properties:
         id:
           format: int64
@@ -1411,18 +1459,18 @@ components:
         name: Category
     User:
       example:
+        id: 0
+        username: username
         firstName: firstName
         lastName: lastName
+        email: email
         password: password
+        phone: phone
         userStatus: 6
+        arbitraryObject: "{}"
+        arbitraryNullableObject: "{}"
         arbitraryTypeValue: ""
         arbitraryNullableTypeValue: ""
-        phone: phone
-        id: 0
-        arbitraryObject: "{}"
-        email: email
-        arbitraryNullableObject: "{}"
-        username: username
       properties:
         id:
           format: int64
@@ -1465,8 +1513,8 @@ components:
         name: User
     Tag:
       example:
-        name: name
         id: 1
+        name: name
       properties:
         id:
           format: int64
@@ -1478,19 +1526,19 @@ components:
         name: Tag
     Pet:
       example:
+        id: 0
+        category:
+          id: 6
+          name: default-name
+        name: doggie
         photoUrls:
         - photoUrls
         - photoUrls
-        name: doggie
-        id: 0
-        category:
-          name: default-name
-          id: 6
         tags:
-        - name: name
-          id: 1
-        - name: name
-          id: 1
+        - id: 1
+          name: name
+        - id: 1
+          name: name
         status: available
       properties:
         id:
@@ -1852,6 +1900,25 @@ components:
             type: array
           type: array
       type: object
+    ArrayTestWithWrapped:
+      properties:
+        array_of_string:
+          items:
+            type: string
+          type: array
+          xml:
+            wrapped: true
+      type: object
+    ArrayTestWithWrappedAndName:
+      properties:
+        array_of_string:
+          items:
+            type: string
+          type: array
+          xml:
+            name: item
+            wrapped: true
+      type: object
     NumberOnly:
       properties:
         JustNumber:
@@ -1926,8 +1993,8 @@ components:
       type: integer
     OuterComposite:
       example:
-        my_string: my_string
         my_number: 0.8008281904610115
+        my_string: my_string
         my_boolean: true
       properties:
         my_number:
@@ -2265,6 +2332,11 @@ components:
       - items:
           type: string
         type: array
+    ExampleEnum:
+      enum:
+      - example1
+      - example2
+      type: string
     _foo_get_default_response:
       example:
         string:
@@ -2431,7 +2503,7 @@ components:
     petstore_auth:
       flows:
         implicit:
-          authorizationUrl: http://petstore.swagger.io/api/oauth/dialog
+          authorizationUrl: http://localhost/api/oauth/dialog
           scopes:
             write:pets: modify pets in your account
             read:pets: read your pets

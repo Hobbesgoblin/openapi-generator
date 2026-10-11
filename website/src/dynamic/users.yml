@@ -29,6 +29,11 @@
   infoLink: "https://www.allianz.com"
   pinned: false
 -
+  caption: "AM GmbH"
+  image: "img/companies/am-gmbh.png"
+  infoLink: "https://www.am-gmbh.de"
+  pinned: false
+-
   caption: "Angular.Schule"
   image: "img/companies/angular-schule.svg"
   infoLink: "https://angular.schule/"
@@ -122,6 +127,11 @@
   caption: Carlsberg Group
   image: "img/companies/carlsberggroup.png"
   infoLink: "https://www.carlsberggroup.com/"
+  pinned: false
+- 
+  caption: Carmatec
+  image: "img/companies/carmatec.png"
+  infoLink: "https://www.carmatec.com/"
   pinned: false
 -
   caption: Cisco 
@@ -359,6 +369,11 @@
   infoLink: "https://developers.mastercard.com"
   pinned: false
 -
+  caption: MCP360
+  image: "img/companies/mcp360.png"
+  infoLink: "https://mcp360.ai/"
+  pinned: false
+-
   caption: "Médiavision"
   image: "img/companies/mediavision.jpeg"
   infoLink: "https://www.mediavision.fr/"
@@ -507,6 +522,11 @@
   caption: "SearchApi"
   image: "img/companies/searchapi.png"
   infoLink: "https://www.searchapi.io/"
+  pinned: false
+-
+  caption: "Service Cost"
+  image: "img/companies/servicecost.png"
+  infoLink: "https://servicecost.in"
   pinned: false
 -
   caption: "Shotstack"

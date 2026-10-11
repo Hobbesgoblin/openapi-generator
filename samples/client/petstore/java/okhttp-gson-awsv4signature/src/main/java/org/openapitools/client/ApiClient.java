@@ -92,7 +92,8 @@ public class ApiClient {
     protected InputStream sslCaCert;
     protected boolean verifyingSsl;
     protected KeyManager[] keyManagers;
-
+    protected String tlsServerName;
+    
     protected OkHttpClient httpClient;
     protected JSON json;
 
@@ -236,8 +237,8 @@ public class ApiClient {
     /**
      * Set base path
      *
-     * @param basePath Base path of the URL (e.g http://petstore.swagger.io/v2
-     * @return An instance of OkHttpClient
+     * @param basePath Base path of the URL (e.g http://petstore.swagger.io/v2)
+     * @return An instance of ApiClient
      */
     public ApiClient setBasePath(String basePath) {
         this.basePath = basePath;
@@ -285,7 +286,7 @@ public class ApiClient {
      * Set HTTP client, which must never be null.
      *
      * @param newHttpClient An instance of OkHttpClient
-     * @return Api Client
+     * @return ApiClient
      * @throws java.lang.NullPointerException when newHttpClient is null
      */
     public ApiClient setHttpClient(OkHttpClient newHttpClient) {
@@ -381,6 +382,29 @@ public class ApiClient {
     }
 
     /**
+     * Get TLS server name for SNI (Server Name Indication).
+     *
+     * @return The TLS server name
+     */
+    public String getTlsServerName() {
+        return tlsServerName;
+    }
+
+    /**
+     * Set TLS server name for SNI (Server Name Indication).
+     * This is used to verify the server certificate against a specific hostname
+     * instead of the hostname in the URL.
+     *
+     * @param tlsServerName The TLS server name to use for certificate verification
+     * @return ApiClient
+     */
+    public ApiClient setTlsServerName(String tlsServerName) {
+        this.tlsServerName = tlsServerName;
+        applySslSettings();
+        return this;
+    }
+
+    /**
      * <p>Getter for the field <code>dateFormat</code>.</p>
      *
      * @return a {@link java.text.DateFormat} object
@@ -430,6 +454,17 @@ public class ApiClient {
      */
     public ApiClient setLocalDateFormat(DateTimeFormatter dateFormat) {
         JSON.setLocalDateFormat(dateFormat);
+        return this;
+    }
+
+    /**
+     * <p>Set LocalDateTimeFormat.</p>
+     *
+     * @param dateFormat a {@link java.time.format.DateTimeFormatter} object
+     * @return a {@link org.openapitools.client.ApiClient} object
+     */
+    public ApiClient setLocalDateTimeFormat(DateTimeFormatter dateFormat) {
+        JSON.setLocalDateTimeFormat(dateFormat);
         return this;
     }
 
@@ -779,6 +814,46 @@ public class ApiClient {
     }
 
     /**
+     * Format the given parameter object as an ASCII-safe JSON string.
+     *
+     * @param param Parameter
+     * @return JSON representation of the parameter
+     */
+    public String parameterToJsonString(Object param) {
+        if (param == null) {
+            return "";
+        }
+        String json = JSON.serialize(param);
+        int firstUnsafe = -1;
+        for (int i = 0; i < json.length(); i++) {
+            if (json.charAt(i) >= 0x7f) {
+                firstUnsafe = i;
+                break;
+            }
+        }
+        if (firstUnsafe == -1) {
+            return json;
+        }
+
+        StringBuilder escaped = new StringBuilder(json.length());
+        escaped.append(json, 0, firstUnsafe);
+        for (int i = firstUnsafe; i < json.length(); i++) {
+            char c = json.charAt(i);
+            if (c >= 0x7f) {
+                escaped.append("\\u");
+                escaped.append(Character.forDigit((c >> 12) & 0xf, 16));
+                escaped.append(Character.forDigit((c >> 8) & 0xf, 16));
+                escaped.append(Character.forDigit((c >> 4) & 0xf, 16));
+                escaped.append(Character.forDigit(c & 0xf, 16));
+            } else {
+                escaped.append(c);
+            }
+        }
+
+        return escaped.toString();
+    }
+
+    /**
      * Formats the specified query parameter to a list containing a single {@code Pair} object.
      *
      * Note that {@code value} must not be a collection.
@@ -809,7 +884,7 @@ public class ApiClient {
      * @param value The value of the parameter.
      * @return A list of {@code Pair} objects.
      */
-    public List<Pair> parameterToPairs(String collectionFormat, String name, Collection value) {
+    public List<Pair> parameterToPairs(String collectionFormat, String name, Collection<?> value) {
         List<Pair> params = new ArrayList<Pair>();
 
         // preconditions
@@ -1038,7 +1113,17 @@ public class ApiClient {
         }
         try {
             if (isJsonMime(contentType)) {
-                return JSON.deserialize(respBody.byteStream(), returnType);
+                if (returnType.equals(String.class)) {
+                    String respBodyString = respBody.string();
+                    if (respBodyString.isEmpty()) {
+                        return null;
+                    }
+                    // Use String-based deserialize for String return type with fallback
+                    return JSON.deserialize(respBodyString, returnType);
+                } else {
+                    // Use InputStream-based deserialize which supports responses > 2GB
+                    return JSON.deserialize(respBody.byteStream(), returnType);
+                }
             } else if (returnType.equals(String.class)) {
                 String respBodyString = respBody.string();
                 if (respBodyString.isEmpty()) {
@@ -1381,7 +1466,8 @@ public class ApiClient {
             if (serverIndex != null) {
                 if (serverIndex < 0 || serverIndex >= servers.size()) {
                     throw new ArrayIndexOutOfBoundsException(String.format(
-                    "Invalid index %d when selecting the host settings. Must be less than %d", serverIndex, servers.size()
+                        java.util.Locale.ROOT,
+                        "Invalid index %d when selecting the host settings. Must be less than %d", serverIndex, servers.size()
                     ));
                 }
                 baseURL = servers.get(serverIndex).URL(serverVariables);
@@ -1453,11 +1539,11 @@ public class ApiClient {
      */
     public void processCookieParams(Map<String, String> cookieParams, Request.Builder reqBuilder) {
         for (Entry<String, String> param : cookieParams.entrySet()) {
-            reqBuilder.addHeader("Cookie", String.format("%s=%s", param.getKey(), param.getValue()));
+            reqBuilder.addHeader("Cookie", String.format(java.util.Locale.ROOT, "%s=%s", param.getKey(), param.getValue()));
         }
         for (Entry<String, String> param : defaultCookieMap.entrySet()) {
             if (!cookieParams.containsKey(param.getKey())) {
-                reqBuilder.addHeader("Cookie", String.format("%s=%s", param.getKey(), param.getValue()));
+                reqBuilder.addHeader("Cookie", String.format(java.util.Locale.ROOT, "%s=%s", param.getKey(), param.getValue()));
             }
         }
     }
@@ -1654,7 +1740,17 @@ public class ApiClient {
                     trustManagerFactory.init(caKeyStore);
                 }
                 trustManagers = trustManagerFactory.getTrustManagers();
-                hostnameVerifier = OkHostnameVerifier.INSTANCE;
+                if (tlsServerName != null && !tlsServerName.isEmpty()) {
+                    hostnameVerifier = new HostnameVerifier() {
+                        @Override
+                        public boolean verify(String hostname, SSLSession session) {
+                            // Verify the certificate against tlsServerName instead of the actual hostname
+                            return OkHostnameVerifier.INSTANCE.verify(tlsServerName, session);
+                        }
+                    };
+                } else {
+                    hostnameVerifier = OkHostnameVerifier.INSTANCE;
+                }
             }
 
             SSLContext sslContext = SSLContext.getInstance("TLS");

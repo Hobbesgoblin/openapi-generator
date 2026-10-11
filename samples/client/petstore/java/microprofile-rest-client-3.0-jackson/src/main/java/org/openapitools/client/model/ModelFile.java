@@ -41,14 +41,14 @@ public class ModelFile  {
   * Test capitalization
   */
   
-  private String sourceURI;
+  protected String sourceURI;
 
 
   /**
    * Test capitalization
    * @return sourceURI
    **/
-  @JsonProperty(JSON_PROPERTY_SOURCE_U_R_I)
+  @JsonProperty(value = JSON_PROPERTY_SOURCE_U_R_I, required = false)
   @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
   public String getSourceURI() {
     return sourceURI;
@@ -57,7 +57,7 @@ public class ModelFile  {
   /**
    * Set sourceURI
    */
-  @JsonProperty(JSON_PROPERTY_SOURCE_U_R_I)
+  @JsonProperty(value = JSON_PROPERTY_SOURCE_U_R_I, required = false)
   @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
   public void setSourceURI(String sourceURI) {
     this.sourceURI = sourceURI;
@@ -96,10 +96,7 @@ public class ModelFile  {
    * (except the first line).
    */
   private static String toIndentedString(Object o) {
-    if (o == null) {
-      return "null";
-    }
-    return o.toString().replace("\n", "\n    ");
+    return o == null ? "null" : o.toString().replace("\n", "\n    ");
   }
 }
 

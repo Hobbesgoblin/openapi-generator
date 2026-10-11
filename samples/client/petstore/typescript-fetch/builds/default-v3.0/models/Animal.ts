@@ -23,14 +23,10 @@ import { type Dog, DogFromJSONTyped, DogToJSON, DogToJSONTyped } from './Dog';
 export interface Animal {
     /**
      * 
-     * @type {string}
-     * @memberof Animal
      */
     className: string;
     /**
      * 
-     * @type {string}
-     * @memberof Animal
      */
     color?: string;
 }
@@ -58,6 +54,7 @@ export function AnimalFromJSONTyped(json: any, ignoreDiscriminator: boolean): An
         if (json['className'] === 'DOG') {
             return DogFromJSONTyped(json, ignoreDiscriminator);
         }
+
     }
     return {
         

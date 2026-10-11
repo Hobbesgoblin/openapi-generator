@@ -26,7 +26,7 @@ import org.openapitools.client.model.OuterEnum;
 /**
  * EnumTest
  */
-@javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaClientCodegen", comments = "Generator version: 7.15.0-SNAPSHOT")
+@javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaClientCodegen", comments = "Generator version: 7.27.0-SNAPSHOT")
 public class EnumTest {
   /**
    * Gets or Sets enumString
@@ -141,9 +141,9 @@ public class EnumTest {
    */
   @JsonAdapter(EnumIntegerEnum.Adapter.class)
   public enum EnumIntegerEnum {
-    NUMBER_1(Integer.valueOf(1)),
+    NUMBER_1(1),
     
-    NUMBER_MINUS_1(Integer.valueOf(-1));
+    NUMBER_MINUS_1(-1);
 
     private Integer value;
 
@@ -193,9 +193,9 @@ public class EnumTest {
    */
   @JsonAdapter(EnumNumberEnum.Adapter.class)
   public enum EnumNumberEnum {
-    NUMBER_1_DOT_1(Double.valueOf(1.1)),
+    NUMBER_1_DOT_1(1.1),
     
-    NUMBER_MINUS_1_DOT_2(Double.valueOf(-1.2));
+    NUMBER_MINUS_1_DOT_2(-1.2);
 
     private Double value;
 
@@ -353,6 +353,7 @@ public class EnumTest {
     this.outerEnum = outerEnum;
   }
 
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -392,10 +393,7 @@ public class EnumTest {
    * (except the first line).
    */
   private String toIndentedString(Object o) {
-    if (o == null) {
-      return "null";
-    }
-    return o.toString().replace("\n", "\n    ");
+    return o == null ? "null" : o.toString().replace("\n", "\n    ");
   }
 
 }

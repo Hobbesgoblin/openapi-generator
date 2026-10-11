@@ -40,22 +40,22 @@ public class ArrayTest  {
   
   public static final String JSON_PROPERTY_ARRAY_OF_STRING = "array_of_string";
   
-  private List<String> arrayOfString = null;
+  protected List<String> arrayOfString = null;
 
   public static final String JSON_PROPERTY_ARRAY_ARRAY_OF_INTEGER = "array_array_of_integer";
   
-  private List<List<Long>> arrayArrayOfInteger = null;
+  protected List<List<Long>> arrayArrayOfInteger = null;
 
   public static final String JSON_PROPERTY_ARRAY_ARRAY_OF_MODEL = "array_array_of_model";
   
-  private List<List<ReadOnlyFirst>> arrayArrayOfModel = null;
+  protected List<List<ReadOnlyFirst>> arrayArrayOfModel = null;
 
 
   /**
    * Get arrayOfString
    * @return arrayOfString
    **/
-  @JsonProperty(JSON_PROPERTY_ARRAY_OF_STRING)
+  @JsonProperty(value = JSON_PROPERTY_ARRAY_OF_STRING, required = false)
   @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
   public List<String> getArrayOfString() {
     return arrayOfString;
@@ -64,7 +64,7 @@ public class ArrayTest  {
   /**
    * Set arrayOfString
    */
-  @JsonProperty(JSON_PROPERTY_ARRAY_OF_STRING)
+  @JsonProperty(value = JSON_PROPERTY_ARRAY_OF_STRING, required = false)
   @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
   public void setArrayOfString(List<String> arrayOfString) {
     this.arrayOfString = arrayOfString;
@@ -87,7 +87,7 @@ public class ArrayTest  {
    * Get arrayArrayOfInteger
    * @return arrayArrayOfInteger
    **/
-  @JsonProperty(JSON_PROPERTY_ARRAY_ARRAY_OF_INTEGER)
+  @JsonProperty(value = JSON_PROPERTY_ARRAY_ARRAY_OF_INTEGER, required = false)
   @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
   public List<List<Long>> getArrayArrayOfInteger() {
     return arrayArrayOfInteger;
@@ -96,7 +96,7 @@ public class ArrayTest  {
   /**
    * Set arrayArrayOfInteger
    */
-  @JsonProperty(JSON_PROPERTY_ARRAY_ARRAY_OF_INTEGER)
+  @JsonProperty(value = JSON_PROPERTY_ARRAY_ARRAY_OF_INTEGER, required = false)
   @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
   public void setArrayArrayOfInteger(List<List<Long>> arrayArrayOfInteger) {
     this.arrayArrayOfInteger = arrayArrayOfInteger;
@@ -119,7 +119,7 @@ public class ArrayTest  {
    * Get arrayArrayOfModel
    * @return arrayArrayOfModel
    **/
-  @JsonProperty(JSON_PROPERTY_ARRAY_ARRAY_OF_MODEL)
+  @JsonProperty(value = JSON_PROPERTY_ARRAY_ARRAY_OF_MODEL, required = false)
   @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
   public List<List<ReadOnlyFirst>> getArrayArrayOfModel() {
     return arrayArrayOfModel;
@@ -128,7 +128,7 @@ public class ArrayTest  {
   /**
    * Set arrayArrayOfModel
    */
-  @JsonProperty(JSON_PROPERTY_ARRAY_ARRAY_OF_MODEL)
+  @JsonProperty(value = JSON_PROPERTY_ARRAY_ARRAY_OF_MODEL, required = false)
   @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
   public void setArrayArrayOfModel(List<List<ReadOnlyFirst>> arrayArrayOfModel) {
     this.arrayArrayOfModel = arrayArrayOfModel;
@@ -177,10 +177,7 @@ public class ArrayTest  {
    * (except the first line).
    */
   private static String toIndentedString(Object o) {
-    if (o == null) {
-      return "null";
-    }
-    return o.toString().replace("\n", "\n    ");
+    return o == null ? "null" : o.toString().replace("\n", "\n    ");
   }
 }
 

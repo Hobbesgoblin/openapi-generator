@@ -1,5 +1,6 @@
 #![allow(unused_qualifications)]
 
+#[cfg(feature = "server")]
 use http::HeaderValue;
 use validator::Validate;
 
@@ -7,9 +8,39 @@ use validator::Validate;
 use crate::header;
 use crate::{models, types::*};
 
+#[cfg(feature = "server")]
+#[allow(dead_code)]
+pub type SSE = std::pin::Pin<
+    std::boxed::Box<
+        dyn futures_util::Stream<
+                Item = std::result::Result<axum::response::sse::Event, std::convert::Infallible>,
+            > + std::marker::Send
+            + std::marker::Sync,
+    >,
+>;
+
+#[allow(dead_code)]
+fn from_validation_error(e: validator::ValidationError) -> validator::ValidationErrors {
+    let mut errs = validator::ValidationErrors::new();
+    errs.add("na", e);
+    errs
+}
+
+/// XSS detection relies on `ammonia`, which is only pulled in by the `server` feature.
+/// Without it (e.g. models-only WASM builds), values are never flagged as HTML.
+#[cfg(feature = "server")]
+fn contains_html(v: &str) -> bool {
+    ammonia::is_html(v)
+}
+
+#[cfg(not(feature = "server"))]
+fn contains_html(_v: &str) -> bool {
+    false
+}
+
 #[allow(dead_code)]
 pub fn check_xss_string(v: &str) -> std::result::Result<(), validator::ValidationError> {
-    if ammonia::is_html(v) {
+    if contains_html(v) {
         std::result::Result::Err(validator::ValidationError::new("xss detected"))
     } else {
         std::result::Result::Ok(())
@@ -18,7 +49,7 @@ pub fn check_xss_string(v: &str) -> std::result::Result<(), validator::Validatio
 
 #[allow(dead_code)]
 pub fn check_xss_vec_string(v: &[String]) -> std::result::Result<(), validator::ValidationError> {
-    if v.iter().any(|i| ammonia::is_html(i)) {
+    if v.iter().any(|i| contains_html(i)) {
         std::result::Result::Err(validator::ValidationError::new("xss detected"))
     } else {
         std::result::Result::Ok(())
@@ -29,7 +60,7 @@ pub fn check_xss_vec_string(v: &[String]) -> std::result::Result<(), validator::
 pub fn check_xss_map_string(
     v: &std::collections::HashMap<String, String>,
 ) -> std::result::Result<(), validator::ValidationError> {
-    if v.keys().any(|k| ammonia::is_html(k)) || v.values().any(|v| ammonia::is_html(v)) {
+    if v.keys().any(|k| contains_html(k)) || v.values().any(|v| contains_html(v)) {
         std::result::Result::Err(validator::ValidationError::new("xss detected"))
     } else {
         std::result::Result::Ok(())
@@ -43,7 +74,7 @@ pub fn check_xss_map_nested<T>(
 where
     T: validator::Validate,
 {
-    if v.keys().any(|k| ammonia::is_html(k)) || v.values().any(|v| v.validate().is_err()) {
+    if v.keys().any(|k| contains_html(k)) || v.values().any(|v| v.validate().is_err()) {
         std::result::Result::Err(validator::ValidationError::new("xss detected"))
     } else {
         std::result::Result::Ok(())
@@ -54,7 +85,7 @@ where
 pub fn check_xss_map<T>(
     v: &std::collections::HashMap<String, T>,
 ) -> std::result::Result<(), validator::ValidationError> {
-    if v.keys().any(|k| ammonia::is_html(k)) {
+    if v.keys().any(|k| contains_html(k)) {
         std::result::Result::Err(validator::ValidationError::new("xss detected"))
     } else {
         std::result::Result::Ok(())
@@ -135,7 +166,7 @@ impl std::str::FromStr for Amount {
                 None => {
                     return std::result::Result::Err(
                         "Missing value while parsing Amount".to_string(),
-                    );
+                    )
                 }
             };
 
@@ -153,7 +184,7 @@ impl std::str::FromStr for Amount {
                     _ => {
                         return std::result::Result::Err(
                             "Unexpected key while parsing Amount".to_string(),
-                        );
+                        )
                     }
                 }
             }
@@ -288,7 +319,7 @@ impl std::str::FromStr for CheckoutError {
                 None => {
                     return std::result::Result::Err(
                         "Missing value while parsing CheckoutError".to_string(),
-                    );
+                    )
                 }
             };
 
@@ -306,7 +337,7 @@ impl std::str::FromStr for CheckoutError {
                     _ => {
                         return std::result::Result::Err(
                             "Unexpected key while parsing CheckoutError".to_string(),
-                        );
+                        )
                     }
                 }
             }
@@ -474,7 +505,7 @@ impl std::str::FromStr for Payment {
                 None => {
                     return std::result::Result::Err(
                         "Missing value while parsing Payment".to_string(),
-                    );
+                    )
                 }
             };
 
@@ -506,7 +537,7 @@ impl std::str::FromStr for Payment {
                     _ => {
                         return std::result::Result::Err(
                             "Unexpected key while parsing Payment".to_string(),
-                        );
+                        )
                     }
                 }
             }
@@ -594,7 +625,7 @@ pub struct PaymentMethod {
     #[serde(rename = "type")]
     #[validate(custom(function = "check_xss_string"))]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub r#type: Option<String>,
+    pub r_type: Option<String>,
 }
 
 impl PaymentMethod {
@@ -602,7 +633,7 @@ impl PaymentMethod {
     pub fn new() -> PaymentMethod {
         PaymentMethod {
             name: None,
-            r#type: None,
+            r_type: None,
         }
     }
 }
@@ -616,9 +647,9 @@ impl std::fmt::Display for PaymentMethod {
             self.name
                 .as_ref()
                 .map(|name| ["name".to_string(), name.to_string()].join(",")),
-            self.r#type
+            self.r_type
                 .as_ref()
-                .map(|r#type| ["type".to_string(), r#type.to_string()].join(",")),
+                .map(|r_type| ["type".to_string(), r_type.to_string()].join(",")),
         ];
 
         write!(
@@ -641,7 +672,7 @@ impl std::str::FromStr for PaymentMethod {
         #[allow(dead_code)]
         struct IntermediateRep {
             pub name: Vec<String>,
-            pub r#type: Vec<String>,
+            pub r_type: Vec<String>,
         }
 
         let mut intermediate_rep = IntermediateRep::default();
@@ -656,7 +687,7 @@ impl std::str::FromStr for PaymentMethod {
                 None => {
                     return std::result::Result::Err(
                         "Missing value while parsing PaymentMethod".to_string(),
-                    );
+                    )
                 }
             };
 
@@ -668,13 +699,13 @@ impl std::str::FromStr for PaymentMethod {
                         <String as std::str::FromStr>::from_str(val).map_err(|x| x.to_string())?,
                     ),
                     #[allow(clippy::redundant_clone)]
-                    "type" => intermediate_rep.r#type.push(
+                    "type" => intermediate_rep.r_type.push(
                         <String as std::str::FromStr>::from_str(val).map_err(|x| x.to_string())?,
                     ),
                     _ => {
                         return std::result::Result::Err(
                             "Unexpected key while parsing PaymentMethod".to_string(),
-                        );
+                        )
                     }
                 }
             }
@@ -686,7 +717,7 @@ impl std::str::FromStr for PaymentMethod {
         // Use the intermediate representation to return the struct
         std::result::Result::Ok(PaymentMethod {
             name: intermediate_rep.name.into_iter().next(),
-            r#type: intermediate_rep.r#type.into_iter().next(),
+            r_type: intermediate_rep.r_type.into_iter().next(),
         })
     }
 }
@@ -805,7 +836,7 @@ impl std::str::FromStr for PaymentResult {
                 None => {
                     return std::result::Result::Err(
                         "Missing value while parsing PaymentResult".to_string(),
-                    );
+                    )
                 }
             };
 
@@ -823,7 +854,7 @@ impl std::str::FromStr for PaymentResult {
                     _ => {
                         return std::result::Result::Err(
                             "Unexpected key while parsing PaymentResult".to_string(),
-                        );
+                        )
                     }
                 }
             }

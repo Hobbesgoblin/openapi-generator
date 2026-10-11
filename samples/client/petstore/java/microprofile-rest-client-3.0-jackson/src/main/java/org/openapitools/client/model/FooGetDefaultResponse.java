@@ -36,14 +36,14 @@ public class FooGetDefaultResponse  {
   
   public static final String JSON_PROPERTY_STRING = "string";
   
-  private Foo string;
+  protected Foo string;
 
 
   /**
    * Get string
    * @return string
    **/
-  @JsonProperty(JSON_PROPERTY_STRING)
+  @JsonProperty(value = JSON_PROPERTY_STRING, required = false)
   @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
   public Foo getString() {
     return string;
@@ -52,7 +52,7 @@ public class FooGetDefaultResponse  {
   /**
    * Set string
    */
-  @JsonProperty(JSON_PROPERTY_STRING)
+  @JsonProperty(value = JSON_PROPERTY_STRING, required = false)
   @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
   public void setString(Foo string) {
     this.string = string;
@@ -91,10 +91,7 @@ public class FooGetDefaultResponse  {
    * (except the first line).
    */
   private static String toIndentedString(Object o) {
-    if (o == null) {
-      return "null";
-    }
-    return o.toString().replace("\n", "\n    ");
+    return o == null ? "null" : o.toString().replace("\n", "\n    ");
   }
 }
 

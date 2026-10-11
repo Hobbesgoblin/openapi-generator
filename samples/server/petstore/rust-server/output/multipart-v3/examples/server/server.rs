@@ -76,8 +76,6 @@ pub async fn create(addr: &str, https: bool) {
         }
     } else {
         info!("Starting a server (over http, so no TLS)");
-        // Using HTTP
-        let listener = TcpListener::bind(&addr).await.unwrap();
         println!("Listening on http://{}", addr);
 
         loop {
@@ -169,7 +167,7 @@ impl<C> Api<C> for Server<C> where C: Has<XSpanIdString> + Send + Sync
         object_field: Option<models::MultipartRequestObjectField>,
         context: &C) -> Result<MultipartRequestPostResponse, ApiError>
     {
-        info!("multipart_request_post(\"{}\", {:?}, {:?}, {:?}) - X-Span-ID: {:?}", string_field, binary_field, optional_string_field, object_field, context.get().0.clone());
+        info!("multipart_request_post({:?}, {:?}, {:?}, {:?}) - X-Span-ID: {:?}", string_field, binary_field, optional_string_field, object_field, context.get().0.clone());
         Err(ApiError("Api-Error: Operation is NOT implemented".into()))
     }
 

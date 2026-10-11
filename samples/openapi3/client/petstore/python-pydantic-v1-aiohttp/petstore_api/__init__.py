@@ -48,6 +48,7 @@ __all__ = [
     "ApiResponse",
     "ArrayOfArrayOfModel",
     "ArrayOfArrayOfNumberOnly",
+    "ArrayOfMapModel",
     "ArrayOfNumberOnly",
     "ArrayTest",
     "BaseDiscriminator",
@@ -64,6 +65,7 @@ __all__ = [
     "Creature",
     "CreatureInfo",
     "DanishPig",
+    "DataOutputFormat",
     "DeprecatedObject",
     "DiscriminatorAllOfSub",
     "DiscriminatorAllOfSuper",
@@ -72,6 +74,7 @@ __all__ = [
     "EnumArrays",
     "EnumClass",
     "EnumNumberVendorExt",
+    "EnumRefWithDefaultValue",
     "EnumString1",
     "EnumString2",
     "EnumStringVendorExt",
@@ -85,12 +88,14 @@ __all__ = [
     "FooGetDefaultResponse",
     "FormatTest",
     "HasOnlyReadOnly",
+    "HeaderArg",
     "HealthCheckResult",
     "HuntingDog",
     "Info",
     "InnerDictWithProperty",
     "InputAllOf",
     "IntOrString",
+    "Known",
     "ListClass",
     "MapOfArrayOfModel",
     "MapTest",
@@ -106,6 +111,7 @@ __all__ = [
     "ObjectWithDeprecatedFields",
     "OneOfEnumString",
     "Order",
+    "Other",
     "OuterComposite",
     "OuterEnum",
     "OuterEnumDefaultValue",
@@ -130,6 +136,7 @@ __all__ = [
     "SpecialModelName",
     "SpecialName",
     "Tag",
+    "TaggedUnion",
     "Task",
     "TaskActivity",
     "TestEnum",
@@ -145,6 +152,7 @@ __all__ = [
     "UnnamedDictWithAdditionalStringListProperties",
     "UploadFileWithAdditionalPropertiesRequestObject",
     "User",
+    "UuidWithPattern",
     "WithNestedOneOf",
 ]
 
@@ -183,6 +191,7 @@ from petstore_api.models.any_of_pig import AnyOfPig as AnyOfPig
 from petstore_api.models.api_response import ApiResponse as ApiResponse
 from petstore_api.models.array_of_array_of_model import ArrayOfArrayOfModel as ArrayOfArrayOfModel
 from petstore_api.models.array_of_array_of_number_only import ArrayOfArrayOfNumberOnly as ArrayOfArrayOfNumberOnly
+from petstore_api.models.array_of_map_model import ArrayOfMapModel as ArrayOfMapModel
 from petstore_api.models.array_of_number_only import ArrayOfNumberOnly as ArrayOfNumberOnly
 from petstore_api.models.array_test import ArrayTest as ArrayTest
 from petstore_api.models.base_discriminator import BaseDiscriminator as BaseDiscriminator
@@ -199,6 +208,7 @@ from petstore_api.models.color import Color as Color
 from petstore_api.models.creature import Creature as Creature
 from petstore_api.models.creature_info import CreatureInfo as CreatureInfo
 from petstore_api.models.danish_pig import DanishPig as DanishPig
+from petstore_api.models.data_output_format import DataOutputFormat as DataOutputFormat
 from petstore_api.models.deprecated_object import DeprecatedObject as DeprecatedObject
 from petstore_api.models.discriminator_all_of_sub import DiscriminatorAllOfSub as DiscriminatorAllOfSub
 from petstore_api.models.discriminator_all_of_super import DiscriminatorAllOfSuper as DiscriminatorAllOfSuper
@@ -207,6 +217,7 @@ from petstore_api.models.dummy_model import DummyModel as DummyModel
 from petstore_api.models.enum_arrays import EnumArrays as EnumArrays
 from petstore_api.models.enum_class import EnumClass as EnumClass
 from petstore_api.models.enum_number_vendor_ext import EnumNumberVendorExt as EnumNumberVendorExt
+from petstore_api.models.enum_ref_with_default_value import EnumRefWithDefaultValue as EnumRefWithDefaultValue
 from petstore_api.models.enum_string1 import EnumString1 as EnumString1
 from petstore_api.models.enum_string2 import EnumString2 as EnumString2
 from petstore_api.models.enum_string_vendor_ext import EnumStringVendorExt as EnumStringVendorExt
@@ -220,12 +231,14 @@ from petstore_api.models.foo import Foo as Foo
 from petstore_api.models.foo_get_default_response import FooGetDefaultResponse as FooGetDefaultResponse
 from petstore_api.models.format_test import FormatTest as FormatTest
 from petstore_api.models.has_only_read_only import HasOnlyReadOnly as HasOnlyReadOnly
+from petstore_api.models.header_arg import HeaderArg as HeaderArg
 from petstore_api.models.health_check_result import HealthCheckResult as HealthCheckResult
 from petstore_api.models.hunting_dog import HuntingDog as HuntingDog
 from petstore_api.models.info import Info as Info
 from petstore_api.models.inner_dict_with_property import InnerDictWithProperty as InnerDictWithProperty
 from petstore_api.models.input_all_of import InputAllOf as InputAllOf
 from petstore_api.models.int_or_string import IntOrString as IntOrString
+from petstore_api.models.known import Known as Known
 from petstore_api.models.list_class import ListClass as ListClass
 from petstore_api.models.map_of_array_of_model import MapOfArrayOfModel as MapOfArrayOfModel
 from petstore_api.models.map_test import MapTest as MapTest
@@ -241,6 +254,7 @@ from petstore_api.models.object_to_test_additional_properties import ObjectToTes
 from petstore_api.models.object_with_deprecated_fields import ObjectWithDeprecatedFields as ObjectWithDeprecatedFields
 from petstore_api.models.one_of_enum_string import OneOfEnumString as OneOfEnumString
 from petstore_api.models.order import Order as Order
+from petstore_api.models.other import Other as Other
 from petstore_api.models.outer_composite import OuterComposite as OuterComposite
 from petstore_api.models.outer_enum import OuterEnum as OuterEnum
 from petstore_api.models.outer_enum_default_value import OuterEnumDefaultValue as OuterEnumDefaultValue
@@ -265,6 +279,7 @@ from petstore_api.models.special_character_enum import SpecialCharacterEnum as S
 from petstore_api.models.special_model_name import SpecialModelName as SpecialModelName
 from petstore_api.models.special_name import SpecialName as SpecialName
 from petstore_api.models.tag import Tag as Tag
+from petstore_api.models.tagged_union import TaggedUnion as TaggedUnion
 from petstore_api.models.task import Task as Task
 from petstore_api.models.task_activity import TaskActivity as TaskActivity
 from petstore_api.models.test_enum import TestEnum as TestEnum
@@ -280,4 +295,5 @@ from petstore_api.models.unnamed_dict_with_additional_model_list_properties impo
 from petstore_api.models.unnamed_dict_with_additional_string_list_properties import UnnamedDictWithAdditionalStringListProperties as UnnamedDictWithAdditionalStringListProperties
 from petstore_api.models.upload_file_with_additional_properties_request_object import UploadFileWithAdditionalPropertiesRequestObject as UploadFileWithAdditionalPropertiesRequestObject
 from petstore_api.models.user import User as User
+from petstore_api.models.uuid_with_pattern import UuidWithPattern as UuidWithPattern
 from petstore_api.models.with_nested_one_of import WithNestedOneOf as WithNestedOneOf

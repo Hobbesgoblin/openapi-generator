@@ -51,10 +51,10 @@ class FakeController extends Controller
     {
         $validator = Validator::make(
             array_merge(
+                $request->all(),
                 [
                     
                 ],
-                $request->all(),
             ),
             [
             ],
@@ -64,13 +64,8 @@ class FakeController extends Controller
             return response()->json(['error' => 'Invalid input'], 400);
         }
 
-        try {
-            $apiResult = $this->api->fakeBigDecimalMap();
-        } catch (\Exception $exception) {
-            // This shouldn't happen
-            report($exception);
-            return response()->json(['error' => $exception->getMessage()], 500);
-        }
+
+        $apiResult = $this->api->fakeBigDecimalMap();
 
         if ($apiResult instanceof \OpenAPI\Server\Model\FakeBigDecimalMap200Response) {
             return response()->json($this->serde->serialize($apiResult, format: 'array'), 200);
@@ -90,10 +85,10 @@ class FakeController extends Controller
     {
         $validator = Validator::make(
             array_merge(
+                $request->all(),
                 [
                     
                 ],
-                $request->all(),
             ),
             [
             ],
@@ -103,13 +98,8 @@ class FakeController extends Controller
             return response()->json(['error' => 'Invalid input'], 400);
         }
 
-        try {
-            $apiResult = $this->api->fakeHealthGet();
-        } catch (\Exception $exception) {
-            // This shouldn't happen
-            report($exception);
-            return response()->json(['error' => $exception->getMessage()], 500);
-        }
+
+        $apiResult = $this->api->fakeHealthGet();
 
         if ($apiResult instanceof \OpenAPI\Server\Model\HealthCheckResult) {
             return response()->json($this->serde->serialize($apiResult, format: 'array'), 200);
@@ -129,10 +119,10 @@ class FakeController extends Controller
     {
         $validator = Validator::make(
             array_merge(
+                $request->all(),
                 [
                     
                 ],
-                $request->all(),
             ),
             [
             ],
@@ -144,17 +134,12 @@ class FakeController extends Controller
 
         $pet = $this->serde->deserialize($request->getContent(), from: 'json', to: \OpenAPI\Server\Model\Pet::class);
 
-        $query1 = $request->string('query1')->value();
+        $query1 = $request->string('query_1')->value();
 
-        $header1 = $request->string('header1')->value();
+        $header1 = $request->string('header_1')->value();
 
-        try {
-            $apiResult = $this->api->fakeHttpSignatureTest($pet, $query1, $header1);
-        } catch (\Exception $exception) {
-            // This shouldn't happen
-            report($exception);
-            return response()->json(['error' => $exception->getMessage()], 500);
-        }
+
+        $apiResult = $this->api->fakeHttpSignatureTest($pet, $query1, $header1);
 
         if ($apiResult instanceof \OpenAPI\Server\Model\NoContent200) {
             return response()->json($this->serde->serialize($apiResult, format: 'array'), 200);
@@ -174,10 +159,10 @@ class FakeController extends Controller
     {
         $validator = Validator::make(
             array_merge(
+                $request->all(),
                 [
                     
                 ],
-                $request->all(),
             ),
             [
             ],
@@ -189,13 +174,8 @@ class FakeController extends Controller
 
         $body = $request->boolean('body');
 
-        try {
-            $apiResult = $this->api->fakeOuterBooleanSerialize($body);
-        } catch (\Exception $exception) {
-            // This shouldn't happen
-            report($exception);
-            return response()->json(['error' => $exception->getMessage()], 500);
-        }
+
+        $apiResult = $this->api->fakeOuterBooleanSerialize($body);
 
         if ($apiResult instanceof bool) {
             return response()->json($this->serde->serialize($apiResult, format: 'array'), 200);
@@ -215,10 +195,10 @@ class FakeController extends Controller
     {
         $validator = Validator::make(
             array_merge(
+                $request->all(),
                 [
                     
                 ],
-                $request->all(),
             ),
             [
             ],
@@ -230,13 +210,8 @@ class FakeController extends Controller
 
         $outerComposite = $this->serde->deserialize($request->getContent(), from: 'json', to: \OpenAPI\Server\Model\OuterComposite::class);
 
-        try {
-            $apiResult = $this->api->fakeOuterCompositeSerialize($outerComposite);
-        } catch (\Exception $exception) {
-            // This shouldn't happen
-            report($exception);
-            return response()->json(['error' => $exception->getMessage()], 500);
-        }
+
+        $apiResult = $this->api->fakeOuterCompositeSerialize($outerComposite);
 
         if ($apiResult instanceof \OpenAPI\Server\Model\OuterComposite) {
             return response()->json($this->serde->serialize($apiResult, format: 'array'), 200);
@@ -256,10 +231,10 @@ class FakeController extends Controller
     {
         $validator = Validator::make(
             array_merge(
+                $request->all(),
                 [
                     
                 ],
-                $request->all(),
             ),
             [
             ],
@@ -271,13 +246,8 @@ class FakeController extends Controller
 
         $body = $request->float('body');
 
-        try {
-            $apiResult = $this->api->fakeOuterNumberSerialize($body);
-        } catch (\Exception $exception) {
-            // This shouldn't happen
-            report($exception);
-            return response()->json(['error' => $exception->getMessage()], 500);
-        }
+
+        $apiResult = $this->api->fakeOuterNumberSerialize($body);
 
         if ($apiResult instanceof float) {
             return response()->json($this->serde->serialize($apiResult, format: 'array'), 200);
@@ -297,10 +267,10 @@ class FakeController extends Controller
     {
         $validator = Validator::make(
             array_merge(
+                $request->all(),
                 [
                     
                 ],
-                $request->all(),
             ),
             [
             ],
@@ -312,13 +282,8 @@ class FakeController extends Controller
 
         $body = $request->string('body')->value();
 
-        try {
-            $apiResult = $this->api->fakeOuterStringSerialize($body);
-        } catch (\Exception $exception) {
-            // This shouldn't happen
-            report($exception);
-            return response()->json(['error' => $exception->getMessage()], 500);
-        }
+
+        $apiResult = $this->api->fakeOuterStringSerialize($body);
 
         if ($apiResult instanceof string) {
             return response()->json($this->serde->serialize($apiResult, format: 'array'), 200);
@@ -338,10 +303,10 @@ class FakeController extends Controller
     {
         $validator = Validator::make(
             array_merge(
+                $request->all(),
                 [
                     
                 ],
-                $request->all(),
             ),
             [
             ],
@@ -353,15 +318,94 @@ class FakeController extends Controller
 
         $outerObjectWithEnumProperty = $this->serde->deserialize($request->getContent(), from: 'json', to: \OpenAPI\Server\Model\OuterObjectWithEnumProperty::class);
 
-        try {
-            $apiResult = $this->api->fakePropertyEnumIntegerSerialize($outerObjectWithEnumProperty);
-        } catch (\Exception $exception) {
-            // This shouldn't happen
-            report($exception);
-            return response()->json(['error' => $exception->getMessage()], 500);
-        }
+
+        $apiResult = $this->api->fakePropertyEnumIntegerSerialize($outerObjectWithEnumProperty);
 
         if ($apiResult instanceof \OpenAPI\Server\Model\OuterObjectWithEnumProperty) {
+            return response()->json($this->serde->serialize($apiResult, format: 'array'), 200);
+        }
+
+
+        // This shouldn't happen
+        return response()->abort(500);
+    }
+    /**
+     * Operation getParameterNameMapping
+     *
+     * test query parameter name sanitization.
+     *
+     */
+    public function getParameterNameMapping(Request $request): JsonResponse
+    {
+        $validator = Validator::make(
+            array_merge(
+                $request->all(),
+                [
+                    
+                ],
+            ),
+            [
+                'filter_client_name' => [
+                    'string',
+                ],
+                'filter_user_ids' => [
+                    'array',
+                ],
+            ],
+        );
+
+        if ($validator->fails()) {
+            return response()->json(['error' => 'Invalid input'], 400);
+        }
+
+        $filterClientName = $request->string('filter_client_name')->value();
+
+        $filterUserIds = $request->get('filter_user_ids');
+
+
+        $apiResult = $this->api->getParameterNameMapping($filterClientName, $filterUserIds);
+
+        if ($apiResult instanceof \OpenAPI\Server\Model\NoContent200) {
+            return response()->json($this->serde->serialize($apiResult, format: 'array'), 200);
+        }
+
+
+        // This shouldn't happen
+        return response()->abort(500);
+    }
+    /**
+     * Operation postParameterNameMapping
+     *
+     * test form parameter name sanitization.
+     *
+     */
+    public function postParameterNameMapping(Request $request): JsonResponse
+    {
+        $validator = Validator::make(
+            array_merge(
+                $request->all(),
+                [
+                    
+                ],
+            ),
+            [
+                'client_id' => [
+                    'required',
+                    'integer',
+                ],
+            ],
+        );
+
+        if ($validator->fails()) {
+            return response()->json(['error' => 'Invalid input'], 400);
+        }
+
+        $clientId = $request->integer('client_id');
+
+
+        $apiResult = $this->api->postParameterNameMapping($clientId);
+
+        if ($apiResult instanceof \OpenAPI\Server\Model\NoContent200) {
             return response()->json($this->serde->serialize($apiResult, format: 'array'), 200);
         }
 
@@ -379,10 +423,10 @@ class FakeController extends Controller
     {
         $validator = Validator::make(
             array_merge(
+                $request->all(),
                 [
                     
                 ],
-                $request->all(),
             ),
             [
             ],
@@ -394,13 +438,8 @@ class FakeController extends Controller
 
         $requestBody = $request->get('requestBody');
 
-        try {
-            $apiResult = $this->api->testAdditionalPropertiesReference($requestBody);
-        } catch (\Exception $exception) {
-            // This shouldn't happen
-            report($exception);
-            return response()->json(['error' => $exception->getMessage()], 500);
-        }
+
+        $apiResult = $this->api->testAdditionalPropertiesReference($requestBody);
 
         if ($apiResult instanceof \OpenAPI\Server\Model\NoContent200) {
             return response()->json($this->serde->serialize($apiResult, format: 'array'), 200);
@@ -420,10 +459,10 @@ class FakeController extends Controller
     {
         $validator = Validator::make(
             array_merge(
+                $request->all(),
                 [
                     
                 ],
-                $request->all(),
             ),
             [
             ],
@@ -435,13 +474,8 @@ class FakeController extends Controller
 
         $body = $request->file('body');
 
-        try {
-            $apiResult = $this->api->testBodyWithBinary($body);
-        } catch (\Exception $exception) {
-            // This shouldn't happen
-            report($exception);
-            return response()->json(['error' => $exception->getMessage()], 500);
-        }
+
+        $apiResult = $this->api->testBodyWithBinary($body);
 
         if ($apiResult instanceof \OpenAPI\Server\Model\NoContent200) {
             return response()->json($this->serde->serialize($apiResult, format: 'array'), 200);
@@ -461,10 +495,10 @@ class FakeController extends Controller
     {
         $validator = Validator::make(
             array_merge(
+                $request->all(),
                 [
                     
                 ],
-                $request->all(),
             ),
             [
             ],
@@ -476,13 +510,8 @@ class FakeController extends Controller
 
         $fileSchemaTestClass = $this->serde->deserialize($request->getContent(), from: 'json', to: \OpenAPI\Server\Model\FileSchemaTestClass::class);
 
-        try {
-            $apiResult = $this->api->testBodyWithFileSchema($fileSchemaTestClass);
-        } catch (\Exception $exception) {
-            // This shouldn't happen
-            report($exception);
-            return response()->json(['error' => $exception->getMessage()], 500);
-        }
+
+        $apiResult = $this->api->testBodyWithFileSchema($fileSchemaTestClass);
 
         if ($apiResult instanceof \OpenAPI\Server\Model\NoContent200) {
             return response()->json($this->serde->serialize($apiResult, format: 'array'), 200);
@@ -502,10 +531,10 @@ class FakeController extends Controller
     {
         $validator = Validator::make(
             array_merge(
+                $request->all(),
                 [
                     
                 ],
-                $request->all(),
             ),
             [
             ],
@@ -519,13 +548,8 @@ class FakeController extends Controller
 
         $user = $this->serde->deserialize($request->getContent(), from: 'json', to: \OpenAPI\Server\Model\User::class);
 
-        try {
-            $apiResult = $this->api->testBodyWithQueryParams($query, $user);
-        } catch (\Exception $exception) {
-            // This shouldn't happen
-            report($exception);
-            return response()->json(['error' => $exception->getMessage()], 500);
-        }
+
+        $apiResult = $this->api->testBodyWithQueryParams($query, $user);
 
         if ($apiResult instanceof \OpenAPI\Server\Model\NoContent200) {
             return response()->json($this->serde->serialize($apiResult, format: 'array'), 200);
@@ -545,10 +569,10 @@ class FakeController extends Controller
     {
         $validator = Validator::make(
             array_merge(
+                $request->all(),
                 [
                     
                 ],
-                $request->all(),
             ),
             [
             ],
@@ -560,13 +584,8 @@ class FakeController extends Controller
 
         $client = $this->serde->deserialize($request->getContent(), from: 'json', to: \OpenAPI\Server\Model\Client::class);
 
-        try {
-            $apiResult = $this->api->testClientModel($client);
-        } catch (\Exception $exception) {
-            // This shouldn't happen
-            report($exception);
-            return response()->json(['error' => $exception->getMessage()], 500);
-        }
+
+        $apiResult = $this->api->testClientModel($client);
 
         if ($apiResult instanceof \OpenAPI\Server\Model\Client) {
             return response()->json($this->serde->serialize($apiResult, format: 'array'), 200);
@@ -586,10 +605,10 @@ class FakeController extends Controller
     {
         $validator = Validator::make(
             array_merge(
+                $request->all(),
                 [
                     
                 ],
-                $request->all(),
             ),
             [
                 'number' => [
@@ -602,7 +621,7 @@ class FakeController extends Controller
                     'gte:67.8',
                     'lte:123.4',
                 ],
-                'patternWithoutDelimiter' => [
+                'pattern_without_delimiter' => [
                     'required',
                     'regex:/^[A-Z].*/',
                     'string',
@@ -657,7 +676,7 @@ class FakeController extends Controller
 
         $double = $request->float('double');
 
-        $patternWithoutDelimiter = $request->string('patternWithoutDelimiter')->value();
+        $patternWithoutDelimiter = $request->string('pattern_without_delimiter')->value();
 
         $byte = $request->string('byte')->value();
 
@@ -681,96 +700,8 @@ class FakeController extends Controller
 
         $callback = $request->string('callback')->value();
 
-        try {
-            $apiResult = $this->api->testEndpointParameters($number, $double, $patternWithoutDelimiter, $byte, $integer, $int32, $int64, $float, $string, $binary, $date, $dateTime, $password, $callback);
-        } catch (\Exception $exception) {
-            // This shouldn't happen
-            report($exception);
-            return response()->json(['error' => $exception->getMessage()], 500);
-        }
 
-        if ($apiResult instanceof \OpenAPI\Server\Model\NoContent400) {
-            return response()->json($this->serde->serialize($apiResult, format: 'array'), 400);
-        }
-
-        if ($apiResult instanceof \OpenAPI\Server\Model\NoContent404) {
-            return response()->json($this->serde->serialize($apiResult, format: 'array'), 404);
-        }
-
-
-        // This shouldn't happen
-        return response()->abort(500);
-    }
-    /**
-     * Operation testEnumParameters
-     *
-     * To test enum parameters.
-     *
-     */
-    public function testEnumParameters(Request $request): JsonResponse
-    {
-        $validator = Validator::make(
-            array_merge(
-                [
-                    
-                ],
-                $request->all(),
-            ),
-            [
-                'enumHeaderStringArray' => [
-                    'array',
-                ],
-                'enumHeaderString' => [
-                ],
-                'enumQueryStringArray' => [
-                    'array',
-                ],
-                'enumQueryString' => [
-                ],
-                'enumQueryInteger' => [
-                ],
-                'enumQueryDouble' => [
-                ],
-                'enumQueryModelArray' => [
-                    'array',
-                ],
-                'enumFormStringArray' => [
-                    'array',
-                ],
-                'enumFormString' => [
-                ],
-            ],
-        );
-
-        if ($validator->fails()) {
-            return response()->json(['error' => 'Invalid input'], 400);
-        }
-
-        $enumHeaderStringArray = $request->get('enumHeaderStringArray');
-
-        $enumHeaderString = $this->serde->deserialize($request->getContent(), from: 'json', to: \OpenAPI\Server\Model\TestEnumParametersEnumHeaderStringParameter::class);
-
-        $enumQueryStringArray = $request->get('enumQueryStringArray');
-
-        $enumQueryString = $this->serde->deserialize($request->getContent(), from: 'json', to: \OpenAPI\Server\Model\TestEnumParametersEnumHeaderStringParameter::class);
-
-        $enumQueryInteger = $this->serde->deserialize($request->getContent(), from: 'json', to: \OpenAPI\Server\Model\TestEnumParametersEnumQueryIntegerParameter::class);
-
-        $enumQueryDouble = $this->serde->deserialize($request->getContent(), from: 'json', to: \OpenAPI\Server\Model\TestEnumParametersEnumQueryDoubleParameter::class);
-
-        $enumQueryModelArray = $request->get('enumQueryModelArray');
-
-        $enumFormStringArray = $request->get('enumFormStringArray');
-
-        $enumFormString = $this->serde->deserialize($request->getContent(), from: 'json', to: \OpenAPI\Server\Model\TestEnumParametersRequestEnumFormString::class);
-
-        try {
-            $apiResult = $this->api->testEnumParameters($enumHeaderStringArray, $enumHeaderString, $enumQueryStringArray, $enumQueryString, $enumQueryInteger, $enumQueryDouble, $enumQueryModelArray, $enumFormStringArray, $enumFormString);
-        } catch (\Exception $exception) {
-            // This shouldn't happen
-            report($exception);
-            return response()->json(['error' => $exception->getMessage()], 500);
-        }
+        $apiResult = $this->api->testEndpointParameters($number, $double, $patternWithoutDelimiter, $byte, $integer, $int32, $int64, $float, $string, $binary, $date, $dateTime, $password, $callback);
 
         if ($apiResult instanceof \OpenAPI\Server\Model\NoContent400) {
             return response()->json($this->serde->serialize($apiResult, format: 'array'), 400);
@@ -794,31 +725,31 @@ class FakeController extends Controller
     {
         $validator = Validator::make(
             array_merge(
+                $request->all(),
                 [
                     
                 ],
-                $request->all(),
             ),
             [
-                'requiredStringGroup' => [
+                'required_string_group' => [
                     'required',
                     'integer',
                 ],
-                'requiredBooleanGroup' => [
+                'required_boolean_group' => [
                     'required',
                     'boolean',
                 ],
-                'requiredInt64Group' => [
+                'required_int64_group' => [
                     'required',
                     'integer',
                 ],
-                'stringGroup' => [
+                'string_group' => [
                     'integer',
                 ],
-                'booleanGroup' => [
+                'boolean_group' => [
                     'boolean',
                 ],
-                'int64Group' => [
+                'int64_group' => [
                     'integer',
                 ],
             ],
@@ -828,25 +759,20 @@ class FakeController extends Controller
             return response()->json(['error' => 'Invalid input'], 400);
         }
 
-        $requiredStringGroup = $request->integer('requiredStringGroup');
+        $requiredStringGroup = $request->integer('required_string_group');
 
-        $requiredBooleanGroup = $request->boolean('requiredBooleanGroup');
+        $requiredBooleanGroup = $request->boolean('required_boolean_group');
 
-        $requiredInt64Group = $request->integer('requiredInt64Group');
+        $requiredInt64Group = $request->integer('required_int64_group');
 
-        $stringGroup = $request->integer('stringGroup');
+        $stringGroup = $request->integer('string_group');
 
-        $booleanGroup = $request->boolean('booleanGroup');
+        $booleanGroup = $request->boolean('boolean_group');
 
-        $int64Group = $request->integer('int64Group');
+        $int64Group = $request->integer('int64_group');
 
-        try {
-            $apiResult = $this->api->testGroupParameters($requiredStringGroup, $requiredBooleanGroup, $requiredInt64Group, $stringGroup, $booleanGroup, $int64Group);
-        } catch (\Exception $exception) {
-            // This shouldn't happen
-            report($exception);
-            return response()->json(['error' => $exception->getMessage()], 500);
-        }
+
+        $apiResult = $this->api->testGroupParameters($requiredStringGroup, $requiredBooleanGroup, $requiredInt64Group, $stringGroup, $booleanGroup, $int64Group);
 
         if ($apiResult instanceof \OpenAPI\Server\Model\NoContent400) {
             return response()->json($this->serde->serialize($apiResult, format: 'array'), 400);
@@ -866,10 +792,10 @@ class FakeController extends Controller
     {
         $validator = Validator::make(
             array_merge(
+                $request->all(),
                 [
                     
                 ],
-                $request->all(),
             ),
             [
             ],
@@ -881,13 +807,8 @@ class FakeController extends Controller
 
         $requestBody = $request->get('requestBody');
 
-        try {
-            $apiResult = $this->api->testInlineAdditionalProperties($requestBody);
-        } catch (\Exception $exception) {
-            // This shouldn't happen
-            report($exception);
-            return response()->json(['error' => $exception->getMessage()], 500);
-        }
+
+        $apiResult = $this->api->testInlineAdditionalProperties($requestBody);
 
         if ($apiResult instanceof \OpenAPI\Server\Model\NoContent200) {
             return response()->json($this->serde->serialize($apiResult, format: 'array'), 200);
@@ -907,10 +828,10 @@ class FakeController extends Controller
     {
         $validator = Validator::make(
             array_merge(
+                $request->all(),
                 [
                     
                 ],
-                $request->all(),
             ),
             [
             ],
@@ -922,13 +843,8 @@ class FakeController extends Controller
 
         $testInlineFreeformAdditionalPropertiesRequest = $this->serde->deserialize($request->getContent(), from: 'json', to: \OpenAPI\Server\Model\TestInlineFreeformAdditionalPropertiesRequest::class);
 
-        try {
-            $apiResult = $this->api->testInlineFreeformAdditionalProperties($testInlineFreeformAdditionalPropertiesRequest);
-        } catch (\Exception $exception) {
-            // This shouldn't happen
-            report($exception);
-            return response()->json(['error' => $exception->getMessage()], 500);
-        }
+
+        $apiResult = $this->api->testInlineFreeformAdditionalProperties($testInlineFreeformAdditionalPropertiesRequest);
 
         if ($apiResult instanceof \OpenAPI\Server\Model\NoContent200) {
             return response()->json($this->serde->serialize($apiResult, format: 'array'), 200);
@@ -948,10 +864,10 @@ class FakeController extends Controller
     {
         $validator = Validator::make(
             array_merge(
+                $request->all(),
                 [
                     
                 ],
-                $request->all(),
             ),
             [
                 'param' => [
@@ -973,13 +889,8 @@ class FakeController extends Controller
 
         $param2 = $request->string('param2')->value();
 
-        try {
-            $apiResult = $this->api->testJsonFormData($param, $param2);
-        } catch (\Exception $exception) {
-            // This shouldn't happen
-            report($exception);
-            return response()->json(['error' => $exception->getMessage()], 500);
-        }
+
+        $apiResult = $this->api->testJsonFormData($param, $param2);
 
         if ($apiResult instanceof \OpenAPI\Server\Model\NoContent200) {
             return response()->json($this->serde->serialize($apiResult, format: 'array'), 200);
@@ -999,10 +910,10 @@ class FakeController extends Controller
     {
         $validator = Validator::make(
             array_merge(
+                $request->all(),
                 [
                     
                 ],
-                $request->all(),
             ),
             [
             ],
@@ -1014,13 +925,8 @@ class FakeController extends Controller
 
         $childWithNullable = $this->serde->deserialize($request->getContent(), from: 'json', to: \OpenAPI\Server\Model\ChildWithNullable::class);
 
-        try {
-            $apiResult = $this->api->testNullable($childWithNullable);
-        } catch (\Exception $exception) {
-            // This shouldn't happen
-            report($exception);
-            return response()->json(['error' => $exception->getMessage()], 500);
-        }
+
+        $apiResult = $this->api->testNullable($childWithNullable);
 
         if ($apiResult instanceof \OpenAPI\Server\Model\NoContent200) {
             return response()->json($this->serde->serialize($apiResult, format: 'array'), 200);
@@ -1040,10 +946,10 @@ class FakeController extends Controller
     {
         $validator = Validator::make(
             array_merge(
+                $request->all(),
                 [
                     
                 ],
-                $request->all(),
             ),
             [
                 'pipe' => [
@@ -1093,13 +999,8 @@ class FakeController extends Controller
 
         $language = $request->get('language');
 
-        try {
-            $apiResult = $this->api->testQueryParameterCollectionFormat($pipe, $ioutil, $http, $url, $context, $allowEmpty, $language);
-        } catch (\Exception $exception) {
-            // This shouldn't happen
-            report($exception);
-            return response()->json(['error' => $exception->getMessage()], 500);
-        }
+
+        $apiResult = $this->api->testQueryParameterCollectionFormat($pipe, $ioutil, $http, $url, $context, $allowEmpty, $language);
 
         if ($apiResult instanceof \OpenAPI\Server\Model\NoContent200) {
             return response()->json($this->serde->serialize($apiResult, format: 'array'), 200);
@@ -1119,10 +1020,10 @@ class FakeController extends Controller
     {
         $validator = Validator::make(
             array_merge(
+                $request->all(),
                 [
                     
                 ],
-                $request->all(),
             ),
             [
             ],
@@ -1134,13 +1035,8 @@ class FakeController extends Controller
 
         $requestBody = $request->get('requestBody');
 
-        try {
-            $apiResult = $this->api->testStringMapReference($requestBody);
-        } catch (\Exception $exception) {
-            // This shouldn't happen
-            report($exception);
-            return response()->json(['error' => $exception->getMessage()], 500);
-        }
+
+        $apiResult = $this->api->testStringMapReference($requestBody);
 
         if ($apiResult instanceof \OpenAPI\Server\Model\NoContent200) {
             return response()->json($this->serde->serialize($apiResult, format: 'array'), 200);

@@ -12,6 +12,7 @@
  * Do not edit the class manually.
  */
 
+import { parseDate, parseDateTime, serializeDate, serializeDateTime } from '../runtime';
 import type { TestA } from './TestA';
 import {
     instanceOfTestA,
@@ -51,7 +52,7 @@ export function TestResponseFromJSONTyped(json: any, ignoreDiscriminator: boolea
     if (instanceOfTestB(json)) {
         return TestBFromJSONTyped(json, true);
     }
-    if(typeof json === 'string') {
+    if (typeof json === 'string') {
         return json;
     }
     return {} as any;
@@ -74,7 +75,7 @@ export function TestResponseToJSONTyped(value?: TestResponse | null, ignoreDiscr
     if (instanceOfTestB(value)) {
         return TestBToJSON(value as TestB);
     }
-    if(typeof value === 'string') {
+    if (typeof value === 'string') {
         return value;
     }
     return {};

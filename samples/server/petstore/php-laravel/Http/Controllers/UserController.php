@@ -51,10 +51,10 @@ class UserController extends Controller
     {
         $validator = Validator::make(
             array_merge(
+                $request->all(),
                 [
                     
                 ],
-                $request->all(),
             ),
             [
             ],
@@ -66,13 +66,8 @@ class UserController extends Controller
 
         $user = $this->serde->deserialize($request->getContent(), from: 'json', to: \OpenAPI\Server\Model\User::class);
 
-        try {
-            $apiResult = $this->api->createUser($user);
-        } catch (\Exception $exception) {
-            // This shouldn't happen
-            report($exception);
-            return response()->json(['error' => $exception->getMessage()], 500);
-        }
+
+        $apiResult = $this->api->createUser($user);
 
         if ($apiResult instanceof \OpenAPI\Server\Model\NoContentDefault) {
             return response()->json($this->serde->serialize($apiResult, format: 'array'), 0);
@@ -92,10 +87,10 @@ class UserController extends Controller
     {
         $validator = Validator::make(
             array_merge(
+                $request->all(),
                 [
                     
                 ],
-                $request->all(),
             ),
             [
             ],
@@ -107,13 +102,8 @@ class UserController extends Controller
 
         $user = $request->get('user');
 
-        try {
-            $apiResult = $this->api->createUsersWithArrayInput($user);
-        } catch (\Exception $exception) {
-            // This shouldn't happen
-            report($exception);
-            return response()->json(['error' => $exception->getMessage()], 500);
-        }
+
+        $apiResult = $this->api->createUsersWithArrayInput($user);
 
         if ($apiResult instanceof \OpenAPI\Server\Model\NoContentDefault) {
             return response()->json($this->serde->serialize($apiResult, format: 'array'), 0);
@@ -133,10 +123,10 @@ class UserController extends Controller
     {
         $validator = Validator::make(
             array_merge(
+                $request->all(),
                 [
                     
                 ],
-                $request->all(),
             ),
             [
             ],
@@ -148,13 +138,8 @@ class UserController extends Controller
 
         $user = $request->get('user');
 
-        try {
-            $apiResult = $this->api->createUsersWithListInput($user);
-        } catch (\Exception $exception) {
-            // This shouldn't happen
-            report($exception);
-            return response()->json(['error' => $exception->getMessage()], 500);
-        }
+
+        $apiResult = $this->api->createUsersWithListInput($user);
 
         if ($apiResult instanceof \OpenAPI\Server\Model\NoContentDefault) {
             return response()->json($this->serde->serialize($apiResult, format: 'array'), 0);
@@ -174,10 +159,10 @@ class UserController extends Controller
     {
         $validator = Validator::make(
             array_merge(
+                $request->all(),
                 [
                     'username' => $username,
                 ],
-                $request->all(),
             ),
             [
                 'username' => [
@@ -192,13 +177,8 @@ class UserController extends Controller
         }
 
 
-        try {
-            $apiResult = $this->api->deleteUser($username);
-        } catch (\Exception $exception) {
-            // This shouldn't happen
-            report($exception);
-            return response()->json(['error' => $exception->getMessage()], 500);
-        }
+
+        $apiResult = $this->api->deleteUser($username);
 
         if ($apiResult instanceof \OpenAPI\Server\Model\NoContent400) {
             return response()->json($this->serde->serialize($apiResult, format: 'array'), 400);
@@ -222,10 +202,10 @@ class UserController extends Controller
     {
         $validator = Validator::make(
             array_merge(
+                $request->all(),
                 [
                     'username' => $username,
                 ],
-                $request->all(),
             ),
             [
                 'username' => [
@@ -240,13 +220,8 @@ class UserController extends Controller
         }
 
 
-        try {
-            $apiResult = $this->api->getUserByName($username);
-        } catch (\Exception $exception) {
-            // This shouldn't happen
-            report($exception);
-            return response()->json(['error' => $exception->getMessage()], 500);
-        }
+
+        $apiResult = $this->api->getUserByName($username);
 
         if ($apiResult instanceof \OpenAPI\Server\Model\User) {
             return response()->json($this->serde->serialize($apiResult, format: 'array'), 200);
@@ -274,10 +249,10 @@ class UserController extends Controller
     {
         $validator = Validator::make(
             array_merge(
+                $request->all(),
                 [
                     
                 ],
-                $request->all(),
             ),
             [
                 'username' => [
@@ -299,13 +274,8 @@ class UserController extends Controller
 
         $password = $request->string('password')->value();
 
-        try {
-            $apiResult = $this->api->loginUser($username, $password);
-        } catch (\Exception $exception) {
-            // This shouldn't happen
-            report($exception);
-            return response()->json(['error' => $exception->getMessage()], 500);
-        }
+
+        $apiResult = $this->api->loginUser($username, $password);
 
         if ($apiResult instanceof string) {
             return response()->json($this->serde->serialize($apiResult, format: 'array'), 200);
@@ -329,10 +299,10 @@ class UserController extends Controller
     {
         $validator = Validator::make(
             array_merge(
+                $request->all(),
                 [
                     
                 ],
-                $request->all(),
             ),
             [
             ],
@@ -342,13 +312,8 @@ class UserController extends Controller
             return response()->json(['error' => 'Invalid input'], 400);
         }
 
-        try {
-            $apiResult = $this->api->logoutUser();
-        } catch (\Exception $exception) {
-            // This shouldn't happen
-            report($exception);
-            return response()->json(['error' => $exception->getMessage()], 500);
-        }
+
+        $apiResult = $this->api->logoutUser();
 
         if ($apiResult instanceof \OpenAPI\Server\Model\NoContentDefault) {
             return response()->json($this->serde->serialize($apiResult, format: 'array'), 0);
@@ -368,10 +333,10 @@ class UserController extends Controller
     {
         $validator = Validator::make(
             array_merge(
+                $request->all(),
                 [
                     'username' => $username,
                 ],
-                $request->all(),
             ),
             [
             ],
@@ -384,13 +349,8 @@ class UserController extends Controller
 
         $user = $this->serde->deserialize($request->getContent(), from: 'json', to: \OpenAPI\Server\Model\User::class);
 
-        try {
-            $apiResult = $this->api->updateUser($username, $user);
-        } catch (\Exception $exception) {
-            // This shouldn't happen
-            report($exception);
-            return response()->json(['error' => $exception->getMessage()], 500);
-        }
+
+        $apiResult = $this->api->updateUser($username, $user);
 
         if ($apiResult instanceof \OpenAPI\Server\Model\NoContent400) {
             return response()->json($this->serde->serialize($apiResult, format: 'array'), 400);

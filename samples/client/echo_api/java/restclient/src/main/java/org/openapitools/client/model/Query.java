@@ -25,6 +25,7 @@ import java.util.Arrays;
 import java.util.List;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.annotation.JsonTypeName;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 /**
  * Query
@@ -33,7 +34,7 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
   Query.JSON_PROPERTY_ID,
   Query.JSON_PROPERTY_OUTCOMES
 })
-@jakarta.annotation.Generated(value = "org.openapitools.codegen.languages.JavaClientCodegen", comments = "Generator version: 7.15.0-SNAPSHOT")
+@jakarta.annotation.Generated(value = "org.openapitools.codegen.languages.JavaClientCodegen", comments = "Generator version: 7.27.0-SNAPSHOT")
 public class Query {
   public static final String JSON_PROPERTY_ID = "id";
   @jakarta.annotation.Nullable
@@ -94,7 +95,7 @@ public class Query {
    * @return id
    */
   @jakarta.annotation.Nullable
-  @JsonProperty(JSON_PROPERTY_ID)
+  @JsonProperty(value = JSON_PROPERTY_ID, required = false)
   @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
 
   public Long getId() {
@@ -102,7 +103,7 @@ public class Query {
   }
 
 
-  @JsonProperty(JSON_PROPERTY_ID)
+  @JsonProperty(value = JSON_PROPERTY_ID, required = false)
   @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
   public void setId(@jakarta.annotation.Nullable Long id) {
     this.id = id;
@@ -116,7 +117,7 @@ public class Query {
 
   public Query addOutcomesItem(OutcomesEnum outcomesItem) {
     if (this.outcomes == null) {
-      this.outcomes = new ArrayList<>(Arrays.asList(OutcomesEnum.SUCCESS, OutcomesEnum.FAILURE));
+      this.outcomes = new ArrayList<>();
     }
     this.outcomes.add(outcomesItem);
     return this;
@@ -127,7 +128,7 @@ public class Query {
    * @return outcomes
    */
   @jakarta.annotation.Nullable
-  @JsonProperty(JSON_PROPERTY_OUTCOMES)
+  @JsonProperty(value = JSON_PROPERTY_OUTCOMES, required = false)
   @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
 
   public List<OutcomesEnum> getOutcomes() {
@@ -135,7 +136,7 @@ public class Query {
   }
 
 
-  @JsonProperty(JSON_PROPERTY_OUTCOMES)
+  @JsonProperty(value = JSON_PROPERTY_OUTCOMES, required = false)
   @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
   public void setOutcomes(@jakarta.annotation.Nullable List<OutcomesEnum> outcomes) {
     this.outcomes = outcomes;
@@ -175,10 +176,7 @@ public class Query {
    * (except the first line).
    */
   private String toIndentedString(Object o) {
-    if (o == null) {
-      return "null";
-    }
-    return o.toString().replace("\n", "\n    ");
+    return o == null ? "null" : o.toString().replace("\n", "\n    ");
   }
 
 }

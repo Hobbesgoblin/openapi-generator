@@ -44,6 +44,8 @@ namespace Org.OpenAPITools.Model
         /// <param name="dateTime">dateTime</param>
         /// <param name="decimal">decimal</param>
         /// <param name="double">double</param>
+        /// <param name="duplicatePropertyName2">duplicatePropertyName2</param>
+        /// <param name="duplicatePropertyName">duplicatePropertyName</param>
         /// <param name="float">float</param>
         /// <param name="int32">int32</param>
         /// <param name="int32Range">int32Range</param>
@@ -62,7 +64,7 @@ namespace Org.OpenAPITools.Model
         /// <param name="unsignedLong">unsignedLong</param>
         /// <param name="uuid">uuid</param>
         [JsonConstructor]
-        public FormatTest(byte[] @byte, DateOnly date, decimal number, string password, decimal stringFormattedAsDecimalRequired, Option<System.IO.Stream?> binary = default, Option<DateTime?> dateTime = default, Option<decimal?> @decimal = default, Option<double?> @double = default, Option<float?> @float = default, Option<int?> int32 = default, Option<int?> int32Range = default, Option<long?> int64 = default, Option<long?> int64Negative = default, Option<long?> int64NegativeExclusive = default, Option<long?> int64Positive = default, Option<long?> int64PositiveExclusive = default, Option<int?> integer = default, Option<string?> patternWithBackslash = default, Option<string?> patternWithDigits = default, Option<string?> patternWithDigitsAndDelimiter = default, Option<string?> @string = default, Option<decimal?> stringFormattedAsDecimal = default, Option<uint?> unsignedInteger = default, Option<ulong?> unsignedLong = default, Option<Guid?> uuid = default)
+        public FormatTest(byte[] @byte, DateOnly date, decimal number, string password, decimal stringFormattedAsDecimalRequired, Option<System.IO.Stream?> binary = default, Option<DateTime?> dateTime = default, Option<decimal?> @decimal = default, Option<double?> @double = default, Option<string?> duplicatePropertyName2 = default, Option<string?> duplicatePropertyName = default, Option<float?> @float = default, Option<int?> int32 = default, Option<int?> int32Range = default, Option<long?> int64 = default, Option<long?> int64Negative = default, Option<long?> int64NegativeExclusive = default, Option<long?> int64Positive = default, Option<long?> int64PositiveExclusive = default, Option<int?> integer = default, Option<string?> patternWithBackslash = default, Option<string?> patternWithDigits = default, Option<string?> patternWithDigitsAndDelimiter = default, Option<string?> @string = default, Option<decimal?> stringFormattedAsDecimal = default, Option<uint?> unsignedInteger = default, Option<ulong?> unsignedLong = default, Option<Guid?> uuid = default)
         {
             Byte = @byte;
             Date = date;
@@ -73,6 +75,8 @@ namespace Org.OpenAPITools.Model
             DateTimeOption = dateTime;
             DecimalOption = @decimal;
             DoubleOption = @double;
+            DuplicatePropertyName2Option = duplicatePropertyName2;
+            DuplicatePropertyNameOption = duplicatePropertyName;
             FloatOption = @float;
             Int32Option = int32;
             Int32RangeOption = int32Range;
@@ -137,7 +141,7 @@ namespace Org.OpenAPITools.Model
         /// Gets or Sets Binary
         /// </summary>
         [JsonPropertyName("binary")]
-        public System.IO.Stream? Binary { get { return this.BinaryOption; } set { this.BinaryOption = new(value); } }
+        public System.IO.Stream? Binary { get { return this.BinaryOption.Value; } set { this.BinaryOption = new(value); } }
 
         /// <summary>
         /// Used to track the state of DateTime
@@ -151,7 +155,7 @@ namespace Org.OpenAPITools.Model
         /// </summary>
         /* <example>2007-12-03T10:15:30+01:00</example> */
         [JsonPropertyName("dateTime")]
-        public DateTime? DateTime { get { return this.DateTimeOption; } set { this.DateTimeOption = new(value); } }
+        public DateTime? DateTime { get { return this.DateTimeOption.Value; } set { this.DateTimeOption = new(value); } }
 
         /// <summary>
         /// Used to track the state of Decimal
@@ -164,7 +168,7 @@ namespace Org.OpenAPITools.Model
         /// Gets or Sets Decimal
         /// </summary>
         [JsonPropertyName("decimal")]
-        public decimal? Decimal { get { return this.DecimalOption; } set { this.DecimalOption = new(value); } }
+        public decimal? Decimal { get { return this.DecimalOption.Value; } set { this.DecimalOption = new(value); } }
 
         /// <summary>
         /// Used to track the state of Double
@@ -177,7 +181,33 @@ namespace Org.OpenAPITools.Model
         /// Gets or Sets Double
         /// </summary>
         [JsonPropertyName("double")]
-        public double? Double { get { return this.DoubleOption; } set { this.DoubleOption = new(value); } }
+        public double? Double { get { return this.DoubleOption.Value; } set { this.DoubleOption = new(value); } }
+
+        /// <summary>
+        /// Used to track the state of DuplicatePropertyName2
+        /// </summary>
+        [JsonIgnore]
+        [global::System.ComponentModel.EditorBrowsable(global::System.ComponentModel.EditorBrowsableState.Never)]
+        public Option<string?> DuplicatePropertyName2Option { get; private set; }
+
+        /// <summary>
+        /// Gets or Sets DuplicatePropertyName2
+        /// </summary>
+        [JsonPropertyName("duplicate_property_name")]
+        public string? DuplicatePropertyName2 { get { return this.DuplicatePropertyName2Option.Value; } set { this.DuplicatePropertyName2Option = new(value); } }
+
+        /// <summary>
+        /// Used to track the state of DuplicatePropertyName
+        /// </summary>
+        [JsonIgnore]
+        [global::System.ComponentModel.EditorBrowsable(global::System.ComponentModel.EditorBrowsableState.Never)]
+        public Option<string?> DuplicatePropertyNameOption { get; private set; }
+
+        /// <summary>
+        /// Gets or Sets DuplicatePropertyName
+        /// </summary>
+        [JsonPropertyName("@duplicate_property_name")]
+        public string? DuplicatePropertyName { get { return this.DuplicatePropertyNameOption.Value; } set { this.DuplicatePropertyNameOption = new(value); } }
 
         /// <summary>
         /// Used to track the state of Float
@@ -190,7 +220,7 @@ namespace Org.OpenAPITools.Model
         /// Gets or Sets Float
         /// </summary>
         [JsonPropertyName("float")]
-        public float? Float { get { return this.FloatOption; } set { this.FloatOption = new(value); } }
+        public float? Float { get { return this.FloatOption.Value; } set { this.FloatOption = new(value); } }
 
         /// <summary>
         /// Used to track the state of Int32
@@ -203,7 +233,7 @@ namespace Org.OpenAPITools.Model
         /// Gets or Sets Int32
         /// </summary>
         [JsonPropertyName("int32")]
-        public int? Int32 { get { return this.Int32Option; } set { this.Int32Option = new(value); } }
+        public int? Int32 { get { return this.Int32Option.Value; } set { this.Int32Option = new(value); } }
 
         /// <summary>
         /// Used to track the state of Int32Range
@@ -216,7 +246,7 @@ namespace Org.OpenAPITools.Model
         /// Gets or Sets Int32Range
         /// </summary>
         [JsonPropertyName("int32Range")]
-        public int? Int32Range { get { return this.Int32RangeOption; } set { this.Int32RangeOption = new(value); } }
+        public int? Int32Range { get { return this.Int32RangeOption.Value; } set { this.Int32RangeOption = new(value); } }
 
         /// <summary>
         /// Used to track the state of Int64
@@ -229,7 +259,7 @@ namespace Org.OpenAPITools.Model
         /// Gets or Sets Int64
         /// </summary>
         [JsonPropertyName("int64")]
-        public long? Int64 { get { return this.Int64Option; } set { this.Int64Option = new(value); } }
+        public long? Int64 { get { return this.Int64Option.Value; } set { this.Int64Option = new(value); } }
 
         /// <summary>
         /// Used to track the state of Int64Negative
@@ -242,7 +272,7 @@ namespace Org.OpenAPITools.Model
         /// Gets or Sets Int64Negative
         /// </summary>
         [JsonPropertyName("int64Negative")]
-        public long? Int64Negative { get { return this.Int64NegativeOption; } set { this.Int64NegativeOption = new(value); } }
+        public long? Int64Negative { get { return this.Int64NegativeOption.Value; } set { this.Int64NegativeOption = new(value); } }
 
         /// <summary>
         /// Used to track the state of Int64NegativeExclusive
@@ -255,7 +285,7 @@ namespace Org.OpenAPITools.Model
         /// Gets or Sets Int64NegativeExclusive
         /// </summary>
         [JsonPropertyName("int64NegativeExclusive")]
-        public long? Int64NegativeExclusive { get { return this.Int64NegativeExclusiveOption; } set { this.Int64NegativeExclusiveOption = new(value); } }
+        public long? Int64NegativeExclusive { get { return this.Int64NegativeExclusiveOption.Value; } set { this.Int64NegativeExclusiveOption = new(value); } }
 
         /// <summary>
         /// Used to track the state of Int64Positive
@@ -268,7 +298,7 @@ namespace Org.OpenAPITools.Model
         /// Gets or Sets Int64Positive
         /// </summary>
         [JsonPropertyName("int64Positive")]
-        public long? Int64Positive { get { return this.Int64PositiveOption; } set { this.Int64PositiveOption = new(value); } }
+        public long? Int64Positive { get { return this.Int64PositiveOption.Value; } set { this.Int64PositiveOption = new(value); } }
 
         /// <summary>
         /// Used to track the state of Int64PositiveExclusive
@@ -281,7 +311,7 @@ namespace Org.OpenAPITools.Model
         /// Gets or Sets Int64PositiveExclusive
         /// </summary>
         [JsonPropertyName("int64PositiveExclusive")]
-        public long? Int64PositiveExclusive { get { return this.Int64PositiveExclusiveOption; } set { this.Int64PositiveExclusiveOption = new(value); } }
+        public long? Int64PositiveExclusive { get { return this.Int64PositiveExclusiveOption.Value; } set { this.Int64PositiveExclusiveOption = new(value); } }
 
         /// <summary>
         /// Used to track the state of Integer
@@ -294,7 +324,7 @@ namespace Org.OpenAPITools.Model
         /// Gets or Sets Integer
         /// </summary>
         [JsonPropertyName("integer")]
-        public int? Integer { get { return this.IntegerOption; } set { this.IntegerOption = new(value); } }
+        public int? Integer { get { return this.IntegerOption.Value; } set { this.IntegerOption = new(value); } }
 
         /// <summary>
         /// Used to track the state of PatternWithBackslash
@@ -308,7 +338,7 @@ namespace Org.OpenAPITools.Model
         /// </summary>
         /// <value>None</value>
         [JsonPropertyName("pattern_with_backslash")]
-        public string? PatternWithBackslash { get { return this.PatternWithBackslashOption; } set { this.PatternWithBackslashOption = new(value); } }
+        public string? PatternWithBackslash { get { return this.PatternWithBackslashOption.Value; } set { this.PatternWithBackslashOption = new(value); } }
 
         /// <summary>
         /// Used to track the state of PatternWithDigits
@@ -322,7 +352,7 @@ namespace Org.OpenAPITools.Model
         /// </summary>
         /// <value>A string that is a 10 digit number. Can have leading zeros.</value>
         [JsonPropertyName("pattern_with_digits")]
-        public string? PatternWithDigits { get { return this.PatternWithDigitsOption; } set { this.PatternWithDigitsOption = new(value); } }
+        public string? PatternWithDigits { get { return this.PatternWithDigitsOption.Value; } set { this.PatternWithDigitsOption = new(value); } }
 
         /// <summary>
         /// Used to track the state of PatternWithDigitsAndDelimiter
@@ -336,7 +366,7 @@ namespace Org.OpenAPITools.Model
         /// </summary>
         /// <value>A string starting with &#39;image_&#39; (case insensitive) and one to three digits following i.e. Image_01.</value>
         [JsonPropertyName("pattern_with_digits_and_delimiter")]
-        public string? PatternWithDigitsAndDelimiter { get { return this.PatternWithDigitsAndDelimiterOption; } set { this.PatternWithDigitsAndDelimiterOption = new(value); } }
+        public string? PatternWithDigitsAndDelimiter { get { return this.PatternWithDigitsAndDelimiterOption.Value; } set { this.PatternWithDigitsAndDelimiterOption = new(value); } }
 
         /// <summary>
         /// Used to track the state of String
@@ -349,7 +379,7 @@ namespace Org.OpenAPITools.Model
         /// Gets or Sets String
         /// </summary>
         [JsonPropertyName("string")]
-        public string? String { get { return this.StringOption; } set { this.StringOption = new(value); } }
+        public string? String { get { return this.StringOption.Value; } set { this.StringOption = new(value); } }
 
         /// <summary>
         /// Used to track the state of StringFormattedAsDecimal
@@ -362,7 +392,7 @@ namespace Org.OpenAPITools.Model
         /// Gets or Sets StringFormattedAsDecimal
         /// </summary>
         [JsonPropertyName("string_formatted_as_decimal")]
-        public decimal? StringFormattedAsDecimal { get { return this.StringFormattedAsDecimalOption; } set { this.StringFormattedAsDecimalOption = new(value); } }
+        public decimal? StringFormattedAsDecimal { get { return this.StringFormattedAsDecimalOption.Value; } set { this.StringFormattedAsDecimalOption = new(value); } }
 
         /// <summary>
         /// Used to track the state of UnsignedInteger
@@ -375,7 +405,7 @@ namespace Org.OpenAPITools.Model
         /// Gets or Sets UnsignedInteger
         /// </summary>
         [JsonPropertyName("unsigned_integer")]
-        public uint? UnsignedInteger { get { return this.UnsignedIntegerOption; } set { this.UnsignedIntegerOption = new(value); } }
+        public uint? UnsignedInteger { get { return this.UnsignedIntegerOption.Value; } set { this.UnsignedIntegerOption = new(value); } }
 
         /// <summary>
         /// Used to track the state of UnsignedLong
@@ -388,7 +418,7 @@ namespace Org.OpenAPITools.Model
         /// Gets or Sets UnsignedLong
         /// </summary>
         [JsonPropertyName("unsigned_long")]
-        public ulong? UnsignedLong { get { return this.UnsignedLongOption; } set { this.UnsignedLongOption = new(value); } }
+        public ulong? UnsignedLong { get { return this.UnsignedLongOption.Value; } set { this.UnsignedLongOption = new(value); } }
 
         /// <summary>
         /// Used to track the state of Uuid
@@ -402,7 +432,7 @@ namespace Org.OpenAPITools.Model
         /// </summary>
         /* <example>72f98069-206d-4f12-9f12-3d1e525a8e84</example> */
         [JsonPropertyName("uuid")]
-        public Guid? Uuid { get { return this.UuidOption; } set { this.UuidOption = new(value); } }
+        public Guid? Uuid { get { return this.UuidOption.Value; } set { this.UuidOption = new(value); } }
 
         /// <summary>
         /// Gets or Sets additional properties
@@ -427,6 +457,8 @@ namespace Org.OpenAPITools.Model
             sb.Append("  DateTime: ").Append(DateTime).Append("\n");
             sb.Append("  Decimal: ").Append(Decimal).Append("\n");
             sb.Append("  Double: ").Append(Double).Append("\n");
+            sb.Append("  DuplicatePropertyName2: ").Append(DuplicatePropertyName2).Append("\n");
+            sb.Append("  DuplicatePropertyName: ").Append(DuplicatePropertyName).Append("\n");
             sb.Append("  Float: ").Append(Float).Append("\n");
             sb.Append("  Int32: ").Append(Int32).Append("\n");
             sb.Append("  Int32Range: ").Append(Int32Range).Append("\n");
@@ -623,17 +655,27 @@ namespace Org.OpenAPITools.Model
     /// <summary>
     /// A Json converter for type <see cref="FormatTest" />
     /// </summary>
-    public class FormatTestJsonConverter : JsonConverter<FormatTest>
+    public partial class FormatTestJsonConverter : JsonConverter<FormatTest>
     {
+        partial void OnCreated();
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FormatTestJsonConverter" /> class.
+        /// </summary>
+        public FormatTestJsonConverter()
+        {
+            OnCreated();
+        }
+
         /// <summary>
         /// The format to use to serialize Date
         /// </summary>
-        public static string DateFormat { get; set; } = "yyyy'-'MM'-'dd";
+        public string DateFormat { get; private set; } = "yyyy'-'MM'-'dd";
 
         /// <summary>
         /// The format to use to serialize DateTime
         /// </summary>
-        public static string DateTimeFormat { get; set; } = "yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fffffffK";
+        public string DateTimeFormat { get; private set; } = "yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fffffffK";
 
         /// <summary>
         /// Deserializes json to <see cref="FormatTest" />
@@ -661,6 +703,8 @@ namespace Org.OpenAPITools.Model
             Option<DateTime?> dateTime = default;
             Option<decimal?> varDecimal = default;
             Option<double?> varDouble = default;
+            Option<string?> duplicatePropertyName2 = default;
+            Option<string?> duplicatePropertyName = default;
             Option<float?> varFloat = default;
             Option<int?> int32 = default;
             Option<int?> int32Range = default;
@@ -721,6 +765,12 @@ namespace Org.OpenAPITools.Model
                         case "double":
                             varDouble = new Option<double?>(utf8JsonReader.TokenType == JsonTokenType.Null ? (double?)null : utf8JsonReader.GetDouble());
                             break;
+                        case "duplicate_property_name":
+                            duplicatePropertyName2 = new Option<string?>(utf8JsonReader.GetString()!);
+                            break;
+                        case "@duplicate_property_name":
+                            duplicatePropertyName = new Option<string?>(utf8JsonReader.GetString()!);
+                            break;
                         case "float":
                             varFloat = new Option<float?>(utf8JsonReader.TokenType == JsonTokenType.Null ? (float?)null : (float)utf8JsonReader.GetDouble());
                             break;
@@ -779,99 +829,105 @@ namespace Org.OpenAPITools.Model
             }
 
             if (!varByte.IsSet)
-                throw new ArgumentException("Property is required for class FormatTest.", nameof(varByte));
+                throw new JsonException("Property is required for class FormatTest: byte.");
 
             if (!date.IsSet)
-                throw new ArgumentException("Property is required for class FormatTest.", nameof(date));
+                throw new JsonException("Property is required for class FormatTest: date.");
 
             if (!number.IsSet)
-                throw new ArgumentException("Property is required for class FormatTest.", nameof(number));
+                throw new JsonException("Property is required for class FormatTest: number.");
 
             if (!password.IsSet)
-                throw new ArgumentException("Property is required for class FormatTest.", nameof(password));
+                throw new JsonException("Property is required for class FormatTest: password.");
 
             if (!stringFormattedAsDecimalRequired.IsSet)
-                throw new ArgumentException("Property is required for class FormatTest.", nameof(stringFormattedAsDecimalRequired));
+                throw new JsonException("Property is required for class FormatTest: string_formatted_as_decimal_required.");
 
             if (varByte.IsSet && varByte.Value == null)
-                throw new ArgumentNullException(nameof(varByte), "Property is not nullable for class FormatTest.");
+                throw new JsonException("Property is not nullable for class FormatTest: byte.");
 
             if (date.IsSet && date.Value == null)
-                throw new ArgumentNullException(nameof(date), "Property is not nullable for class FormatTest.");
+                throw new JsonException("Property is not nullable for class FormatTest: date.");
 
             if (number.IsSet && number.Value == null)
-                throw new ArgumentNullException(nameof(number), "Property is not nullable for class FormatTest.");
+                throw new JsonException("Property is not nullable for class FormatTest: number.");
 
             if (password.IsSet && password.Value == null)
-                throw new ArgumentNullException(nameof(password), "Property is not nullable for class FormatTest.");
+                throw new JsonException("Property is not nullable for class FormatTest: password.");
 
             if (stringFormattedAsDecimalRequired.IsSet && stringFormattedAsDecimalRequired.Value == null)
-                throw new ArgumentNullException(nameof(stringFormattedAsDecimalRequired), "Property is not nullable for class FormatTest.");
+                throw new JsonException("Property is not nullable for class FormatTest: string_formatted_as_decimal_required.");
 
             if (binary.IsSet && binary.Value == null)
-                throw new ArgumentNullException(nameof(binary), "Property is not nullable for class FormatTest.");
+                throw new JsonException("Property is not nullable for class FormatTest: binary.");
 
             if (dateTime.IsSet && dateTime.Value == null)
-                throw new ArgumentNullException(nameof(dateTime), "Property is not nullable for class FormatTest.");
+                throw new JsonException("Property is not nullable for class FormatTest: dateTime.");
 
             if (varDecimal.IsSet && varDecimal.Value == null)
-                throw new ArgumentNullException(nameof(varDecimal), "Property is not nullable for class FormatTest.");
+                throw new JsonException("Property is not nullable for class FormatTest: decimal.");
 
             if (varDouble.IsSet && varDouble.Value == null)
-                throw new ArgumentNullException(nameof(varDouble), "Property is not nullable for class FormatTest.");
+                throw new JsonException("Property is not nullable for class FormatTest: double.");
+
+            if (duplicatePropertyName2.IsSet && duplicatePropertyName2.Value == null)
+                throw new JsonException("Property is not nullable for class FormatTest: duplicate_property_name.");
+
+            if (duplicatePropertyName.IsSet && duplicatePropertyName.Value == null)
+                throw new JsonException("Property is not nullable for class FormatTest: @duplicate_property_name.");
 
             if (varFloat.IsSet && varFloat.Value == null)
-                throw new ArgumentNullException(nameof(varFloat), "Property is not nullable for class FormatTest.");
+                throw new JsonException("Property is not nullable for class FormatTest: float.");
 
             if (int32.IsSet && int32.Value == null)
-                throw new ArgumentNullException(nameof(int32), "Property is not nullable for class FormatTest.");
+                throw new JsonException("Property is not nullable for class FormatTest: int32.");
 
             if (int32Range.IsSet && int32Range.Value == null)
-                throw new ArgumentNullException(nameof(int32Range), "Property is not nullable for class FormatTest.");
+                throw new JsonException("Property is not nullable for class FormatTest: int32Range.");
 
             if (int64.IsSet && int64.Value == null)
-                throw new ArgumentNullException(nameof(int64), "Property is not nullable for class FormatTest.");
+                throw new JsonException("Property is not nullable for class FormatTest: int64.");
 
             if (int64Negative.IsSet && int64Negative.Value == null)
-                throw new ArgumentNullException(nameof(int64Negative), "Property is not nullable for class FormatTest.");
+                throw new JsonException("Property is not nullable for class FormatTest: int64Negative.");
 
             if (int64NegativeExclusive.IsSet && int64NegativeExclusive.Value == null)
-                throw new ArgumentNullException(nameof(int64NegativeExclusive), "Property is not nullable for class FormatTest.");
+                throw new JsonException("Property is not nullable for class FormatTest: int64NegativeExclusive.");
 
             if (int64Positive.IsSet && int64Positive.Value == null)
-                throw new ArgumentNullException(nameof(int64Positive), "Property is not nullable for class FormatTest.");
+                throw new JsonException("Property is not nullable for class FormatTest: int64Positive.");
 
             if (int64PositiveExclusive.IsSet && int64PositiveExclusive.Value == null)
-                throw new ArgumentNullException(nameof(int64PositiveExclusive), "Property is not nullable for class FormatTest.");
+                throw new JsonException("Property is not nullable for class FormatTest: int64PositiveExclusive.");
 
             if (integer.IsSet && integer.Value == null)
-                throw new ArgumentNullException(nameof(integer), "Property is not nullable for class FormatTest.");
+                throw new JsonException("Property is not nullable for class FormatTest: integer.");
 
             if (patternWithBackslash.IsSet && patternWithBackslash.Value == null)
-                throw new ArgumentNullException(nameof(patternWithBackslash), "Property is not nullable for class FormatTest.");
+                throw new JsonException("Property is not nullable for class FormatTest: pattern_with_backslash.");
 
             if (patternWithDigits.IsSet && patternWithDigits.Value == null)
-                throw new ArgumentNullException(nameof(patternWithDigits), "Property is not nullable for class FormatTest.");
+                throw new JsonException("Property is not nullable for class FormatTest: pattern_with_digits.");
 
             if (patternWithDigitsAndDelimiter.IsSet && patternWithDigitsAndDelimiter.Value == null)
-                throw new ArgumentNullException(nameof(patternWithDigitsAndDelimiter), "Property is not nullable for class FormatTest.");
+                throw new JsonException("Property is not nullable for class FormatTest: pattern_with_digits_and_delimiter.");
 
             if (varString.IsSet && varString.Value == null)
-                throw new ArgumentNullException(nameof(varString), "Property is not nullable for class FormatTest.");
+                throw new JsonException("Property is not nullable for class FormatTest: string.");
 
             if (stringFormattedAsDecimal.IsSet && stringFormattedAsDecimal.Value == null)
-                throw new ArgumentNullException(nameof(stringFormattedAsDecimal), "Property is not nullable for class FormatTest.");
+                throw new JsonException("Property is not nullable for class FormatTest: string_formatted_as_decimal.");
 
             if (unsignedInteger.IsSet && unsignedInteger.Value == null)
-                throw new ArgumentNullException(nameof(unsignedInteger), "Property is not nullable for class FormatTest.");
+                throw new JsonException("Property is not nullable for class FormatTest: unsigned_integer.");
 
             if (unsignedLong.IsSet && unsignedLong.Value == null)
-                throw new ArgumentNullException(nameof(unsignedLong), "Property is not nullable for class FormatTest.");
+                throw new JsonException("Property is not nullable for class FormatTest: unsigned_long.");
 
             if (uuid.IsSet && uuid.Value == null)
-                throw new ArgumentNullException(nameof(uuid), "Property is not nullable for class FormatTest.");
+                throw new JsonException("Property is not nullable for class FormatTest: uuid.");
 
-            return new FormatTest(varByte.Value!, date.Value!.Value!, number.Value!.Value!, password.Value!, stringFormattedAsDecimalRequired.Value!.Value!, binary, dateTime, varDecimal, varDouble, varFloat, int32, int32Range, int64, int64Negative, int64NegativeExclusive, int64Positive, int64PositiveExclusive, integer, patternWithBackslash, patternWithDigits, patternWithDigitsAndDelimiter, varString, stringFormattedAsDecimal, unsignedInteger, unsignedLong, uuid);
+            return new FormatTest(varByte.Value!, date.Value!.Value!, number.Value!.Value!, password.Value!, stringFormattedAsDecimalRequired.Value!.Value!, binary, dateTime, varDecimal, varDouble, duplicatePropertyName2, duplicatePropertyName, varFloat, int32, int32Range, int64, int64Negative, int64NegativeExclusive, int64Positive, int64PositiveExclusive, integer, patternWithBackslash, patternWithDigits, patternWithDigitsAndDelimiter, varString, stringFormattedAsDecimal, unsignedInteger, unsignedLong, uuid);
         }
 
         /// <summary>
@@ -880,7 +936,6 @@ namespace Org.OpenAPITools.Model
         /// <param name="writer"></param>
         /// <param name="formatTest"></param>
         /// <param name="jsonSerializerOptions"></param>
-        /// <exception cref="NotImplementedException"></exception>
         public override void Write(Utf8JsonWriter writer, FormatTest formatTest, JsonSerializerOptions jsonSerializerOptions)
         {
             writer.WriteStartObject();
@@ -895,29 +950,76 @@ namespace Org.OpenAPITools.Model
         /// <param name="writer"></param>
         /// <param name="formatTest"></param>
         /// <param name="jsonSerializerOptions"></param>
-        /// <exception cref="NotImplementedException"></exception>
         public void WriteProperties(Utf8JsonWriter writer, FormatTest formatTest, JsonSerializerOptions jsonSerializerOptions)
         {
-            if (formatTest.Byte == null)
-                throw new ArgumentNullException(nameof(formatTest.Byte), "Property is required for class FormatTest.");
-
-            if (formatTest.Password == null)
-                throw new ArgumentNullException(nameof(formatTest.Password), "Property is required for class FormatTest.");
-
             if (formatTest.BinaryOption.IsSet && formatTest.Binary == null)
-                throw new ArgumentNullException(nameof(formatTest.Binary), "Property is required for class FormatTest.");
+                throw new JsonException("Cannot write null property FormatTest.Binary to non-nullable JSON property 'binary'.");
+
+            if (formatTest.DateTimeOption.IsSet && formatTest.DateTime == null)
+                throw new JsonException("Cannot write null property FormatTest.DateTime to non-nullable JSON property 'dateTime'.");
+
+            if (formatTest.DecimalOption.IsSet && formatTest.Decimal == null)
+                throw new JsonException("Cannot write null property FormatTest.Decimal to non-nullable JSON property 'decimal'.");
+
+            if (formatTest.DoubleOption.IsSet && formatTest.Double == null)
+                throw new JsonException("Cannot write null property FormatTest.Double to non-nullable JSON property 'double'.");
+
+            if (formatTest.DuplicatePropertyName2Option.IsSet && formatTest.DuplicatePropertyName2 == null)
+                throw new JsonException("Cannot write null property FormatTest.DuplicatePropertyName2 to non-nullable JSON property 'duplicate_property_name'.");
+
+            if (formatTest.DuplicatePropertyNameOption.IsSet && formatTest.DuplicatePropertyName == null)
+                throw new JsonException("Cannot write null property FormatTest.DuplicatePropertyName to non-nullable JSON property '@duplicate_property_name'.");
+
+            if (formatTest.FloatOption.IsSet && formatTest.Float == null)
+                throw new JsonException("Cannot write null property FormatTest.Float to non-nullable JSON property 'float'.");
+
+            if (formatTest.Int32Option.IsSet && formatTest.Int32 == null)
+                throw new JsonException("Cannot write null property FormatTest.Int32 to non-nullable JSON property 'int32'.");
+
+            if (formatTest.Int32RangeOption.IsSet && formatTest.Int32Range == null)
+                throw new JsonException("Cannot write null property FormatTest.Int32Range to non-nullable JSON property 'int32Range'.");
+
+            if (formatTest.Int64Option.IsSet && formatTest.Int64 == null)
+                throw new JsonException("Cannot write null property FormatTest.Int64 to non-nullable JSON property 'int64'.");
+
+            if (formatTest.Int64NegativeOption.IsSet && formatTest.Int64Negative == null)
+                throw new JsonException("Cannot write null property FormatTest.Int64Negative to non-nullable JSON property 'int64Negative'.");
+
+            if (formatTest.Int64NegativeExclusiveOption.IsSet && formatTest.Int64NegativeExclusive == null)
+                throw new JsonException("Cannot write null property FormatTest.Int64NegativeExclusive to non-nullable JSON property 'int64NegativeExclusive'.");
+
+            if (formatTest.Int64PositiveOption.IsSet && formatTest.Int64Positive == null)
+                throw new JsonException("Cannot write null property FormatTest.Int64Positive to non-nullable JSON property 'int64Positive'.");
+
+            if (formatTest.Int64PositiveExclusiveOption.IsSet && formatTest.Int64PositiveExclusive == null)
+                throw new JsonException("Cannot write null property FormatTest.Int64PositiveExclusive to non-nullable JSON property 'int64PositiveExclusive'.");
+
+            if (formatTest.IntegerOption.IsSet && formatTest.Integer == null)
+                throw new JsonException("Cannot write null property FormatTest.Integer to non-nullable JSON property 'integer'.");
 
             if (formatTest.PatternWithBackslashOption.IsSet && formatTest.PatternWithBackslash == null)
-                throw new ArgumentNullException(nameof(formatTest.PatternWithBackslash), "Property is required for class FormatTest.");
+                throw new JsonException("Cannot write null property FormatTest.PatternWithBackslash to non-nullable JSON property 'pattern_with_backslash'.");
 
             if (formatTest.PatternWithDigitsOption.IsSet && formatTest.PatternWithDigits == null)
-                throw new ArgumentNullException(nameof(formatTest.PatternWithDigits), "Property is required for class FormatTest.");
+                throw new JsonException("Cannot write null property FormatTest.PatternWithDigits to non-nullable JSON property 'pattern_with_digits'.");
 
             if (formatTest.PatternWithDigitsAndDelimiterOption.IsSet && formatTest.PatternWithDigitsAndDelimiter == null)
-                throw new ArgumentNullException(nameof(formatTest.PatternWithDigitsAndDelimiter), "Property is required for class FormatTest.");
+                throw new JsonException("Cannot write null property FormatTest.PatternWithDigitsAndDelimiter to non-nullable JSON property 'pattern_with_digits_and_delimiter'.");
 
             if (formatTest.StringOption.IsSet && formatTest.String == null)
-                throw new ArgumentNullException(nameof(formatTest.String), "Property is required for class FormatTest.");
+                throw new JsonException("Cannot write null property FormatTest.String to non-nullable JSON property 'string'.");
+
+            if (formatTest.StringFormattedAsDecimalOption.IsSet && formatTest.StringFormattedAsDecimal == null)
+                throw new JsonException("Cannot write null property FormatTest.StringFormattedAsDecimal to non-nullable JSON property 'string_formatted_as_decimal'.");
+
+            if (formatTest.UnsignedIntegerOption.IsSet && formatTest.UnsignedInteger == null)
+                throw new JsonException("Cannot write null property FormatTest.UnsignedInteger to non-nullable JSON property 'unsigned_integer'.");
+
+            if (formatTest.UnsignedLongOption.IsSet && formatTest.UnsignedLong == null)
+                throw new JsonException("Cannot write null property FormatTest.UnsignedLong to non-nullable JSON property 'unsigned_long'.");
+
+            if (formatTest.UuidOption.IsSet && formatTest.Uuid == null)
+                throw new JsonException("Cannot write null property FormatTest.Uuid to non-nullable JSON property 'uuid'.");
 
             writer.WritePropertyName("byte");
             JsonSerializer.Serialize(writer, formatTest.Byte, jsonSerializerOptions);
@@ -944,6 +1046,12 @@ namespace Org.OpenAPITools.Model
             }
             if (formatTest.DoubleOption.IsSet)
                 writer.WriteNumber("double", formatTest.DoubleOption.Value!.Value);
+
+            if (formatTest.DuplicatePropertyName2Option.IsSet)
+                writer.WriteString("duplicate_property_name", formatTest.DuplicatePropertyName2);
+
+            if (formatTest.DuplicatePropertyNameOption.IsSet)
+                writer.WriteString("@duplicate_property_name", formatTest.DuplicatePropertyName);
 
             if (formatTest.FloatOption.IsSet)
                 writer.WriteNumber("float", formatTest.FloatOption.Value!.Value);

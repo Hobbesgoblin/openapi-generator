@@ -11,12 +11,27 @@ part 'test_enum.g.dart';
 
 class TestEnum extends EnumClass {
 
+  /**
+   * line1
+   * line2
+   * 
+   */
   @BuiltValueEnumConst(wireName: r'')
   static const TestEnum empty = _$empty;
-  @BuiltValueEnumConst(wireName: r'1')
-  static const TestEnum n1 = _$n1;
-  @BuiltValueEnumConst(wireName: r'2')
-  static const TestEnum n2 = _$n2;
+  /**
+   * line3
+   * line4
+   * 
+   */
+  @BuiltValueEnumConst(wireName: r'value_one')
+  static const TestEnum valueOne = _$valueOne;
+  /**
+   * line5
+   * line6
+   * 
+   */
+  @BuiltValueEnumConst(wireName: r'value_two')
+  static const TestEnum valueTwo = _$valueTwo;
   @BuiltValueEnumConst(wireName: r'unknown_default_open_api', fallback: true)
   static const TestEnum unknownDefaultOpenApi = _$unknownDefaultOpenApi;
 

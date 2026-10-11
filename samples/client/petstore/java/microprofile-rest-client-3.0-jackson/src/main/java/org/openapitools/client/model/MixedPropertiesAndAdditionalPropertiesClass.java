@@ -41,22 +41,22 @@ public class MixedPropertiesAndAdditionalPropertiesClass  {
   
   public static final String JSON_PROPERTY_UUID = "uuid";
   
-  private UUID uuid;
+  protected UUID uuid;
 
   public static final String JSON_PROPERTY_DATE_TIME = "dateTime";
   
-  private Date dateTime;
+  protected Date dateTime;
 
   public static final String JSON_PROPERTY_MAP = "map";
   
-  private Map<String, Animal> map = null;
+  protected Map<String, Animal> map = null;
 
 
   /**
    * Get uuid
    * @return uuid
    **/
-  @JsonProperty(JSON_PROPERTY_UUID)
+  @JsonProperty(value = JSON_PROPERTY_UUID, required = false)
   @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
   public UUID getUuid() {
     return uuid;
@@ -65,7 +65,7 @@ public class MixedPropertiesAndAdditionalPropertiesClass  {
   /**
    * Set uuid
    */
-  @JsonProperty(JSON_PROPERTY_UUID)
+  @JsonProperty(value = JSON_PROPERTY_UUID, required = false)
   @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
   public void setUuid(UUID uuid) {
     this.uuid = uuid;
@@ -80,7 +80,7 @@ public class MixedPropertiesAndAdditionalPropertiesClass  {
    * Get dateTime
    * @return dateTime
    **/
-  @JsonProperty(JSON_PROPERTY_DATE_TIME)
+  @JsonProperty(value = JSON_PROPERTY_DATE_TIME, required = false)
   @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
   public Date getDateTime() {
     return dateTime;
@@ -89,7 +89,7 @@ public class MixedPropertiesAndAdditionalPropertiesClass  {
   /**
    * Set dateTime
    */
-  @JsonProperty(JSON_PROPERTY_DATE_TIME)
+  @JsonProperty(value = JSON_PROPERTY_DATE_TIME, required = false)
   @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
   public void setDateTime(Date dateTime) {
     this.dateTime = dateTime;
@@ -104,7 +104,7 @@ public class MixedPropertiesAndAdditionalPropertiesClass  {
    * Get map
    * @return map
    **/
-  @JsonProperty(JSON_PROPERTY_MAP)
+  @JsonProperty(value = JSON_PROPERTY_MAP, required = false)
   @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
   public Map<String, Animal> getMap() {
     return map;
@@ -113,7 +113,7 @@ public class MixedPropertiesAndAdditionalPropertiesClass  {
   /**
    * Set map
    */
-  @JsonProperty(JSON_PROPERTY_MAP)
+  @JsonProperty(value = JSON_PROPERTY_MAP, required = false)
   @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
   public void setMap(Map<String, Animal> map) {
     this.map = map;
@@ -162,10 +162,7 @@ public class MixedPropertiesAndAdditionalPropertiesClass  {
    * (except the first line).
    */
   private static String toIndentedString(Object o) {
-    if (o == null) {
-      return "null";
-    }
-    return o.toString().replace("\n", "\n    ");
+    return o == null ? "null" : o.toString().replace("\n", "\n    ");
   }
 }
 

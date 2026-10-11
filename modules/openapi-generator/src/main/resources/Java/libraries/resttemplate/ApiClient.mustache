@@ -3,12 +3,14 @@
 package {{invokerPackage}};
 
 {{#withXml}}
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import com.fasterxml.jackson.dataformat.xml.ser.ToXmlGenerator;
+import {{jacksonPackage}}.dataformat.xml.XmlMapper;
+import {{jacksonPackage}}.dataformat.xml.ser.ToXmlGenerator;
 {{/withXml}}
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+{{#generateClientAsBean}}
 import org.springframework.beans.factory.annotation.Autowired;
+{{/generateClientAsBean}}
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -28,7 +30,9 @@ import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.http.converter.xml.MappingJackson2XmlHttpMessageConverter;
 {{/withXml}}
+{{#generateClientAsBean}}
 import org.springframework.stereotype.Component;
+{{/generateClientAsBean}}
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -40,7 +44,12 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.web.util.DefaultUriBuilderFactory;
 {{#openApiNullable}}
+{{^useJackson3}}
 import org.openapitools.jackson.nullable.JsonNullableModule;
+{{/useJackson3}}
+{{#useJackson3}}
+import org.openapitools.jackson.nullable.JsonNullableJackson3Module;
+{{/useJackson3}}
 {{/openApiNullable}}
 
 
@@ -144,7 +153,7 @@ public class ApiClient{{#jsr310}} extends JavaTimeFormatter{{/jsr310}} {
         this.dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
 
         // Set default User-Agent.
-        setUserAgent("Java-SDK");
+        setUserAgent("{{{httpUserAgent}}}{{^httpUserAgent}}OpenAPI-Generator/{{{artifactVersion}}}/java{{/httpUserAgent}}");
 
         // Setup authentications (key: authentication name, value: authentication).
         authentications = new HashMap<String, Authentication>();{{#authMethods}}{{#isBasic}}{{#isBasicBasic}}
@@ -373,10 +382,7 @@ public class ApiClient{{#jsr310}} extends JavaTimeFormatter{{/jsr310}} {
      * @return ApiClient this client
      */
     public ApiClient addDefaultHeader(String name, String value) {
-        if (defaultHeaders.containsKey(name)) {
-            defaultHeaders.remove(name);
-        }
-        defaultHeaders.add(name, value);
+        defaultHeaders.set(name, value);
         return this;
     }
 
@@ -641,10 +647,10 @@ public class ApiClient{{#jsr310}} extends JavaTimeFormatter{{/jsr310}} {
     /**
      * Select the Content-Type header's value from the given array:
      *     if JSON exists in the given array, use it;
-     *     otherwise use the first one of the array.
+     *     otherwise use the first non-wildcard one of the array.
      *
      * @param contentTypes The Content-Type array to select from
-     * @return MediaType The Content-Type header to use. If the given array is empty, JSON will be used.
+     * @return MediaType The Content-Type header to use. If the given array is empty, or only contains wildcard media types, JSON will be used.
      */
     public MediaType selectHeaderContentType(String[] contentTypes) {
         if (contentTypes.length == 0) {
@@ -653,10 +659,20 @@ public class ApiClient{{#jsr310}} extends JavaTimeFormatter{{/jsr310}} {
         for (String contentType : contentTypes) {
             MediaType mediaType = MediaType.parseMediaType(contentType);
             if (isJsonMime(mediaType)) {
+                // A wildcard media type (e.g. "*/*" or "application/*") is treated as
+                // JSON-compatible but cannot be used as a request Content-Type header,
+                // so fall back to concrete JSON in that case.
+                return mediaType.isWildcardType() || mediaType.isWildcardSubtype() ? MediaType.APPLICATION_JSON : mediaType;
+            }
+        }
+        // No JSON type found; use the first concrete (non-wildcard) media type instead.
+        for (String contentType : contentTypes) {
+            MediaType mediaType = MediaType.parseMediaType(contentType);
+            if (!mediaType.isWildcardType() && !mediaType.isWildcardSubtype()) {
                 return mediaType;
             }
         }
-        return MediaType.parseMediaType(contentTypes[0]);
+        return MediaType.APPLICATION_JSON;
     }
 
     /**
@@ -787,9 +803,7 @@ public class ApiClient{{#jsr310}} extends JavaTimeFormatter{{/jsr310}} {
                 break;
             } catch (HttpServerErrorException | HttpClientErrorException ex) {
                 if (ex instanceof HttpServerErrorException
-                        || ((HttpClientErrorException) ex)
-                        .getStatusCode()
-                        .equals(HttpStatus.TOO_MANY_REQUESTS)) {
+                        || ex.getStatusCode().equals(HttpStatus.TOO_MANY_REQUESTS)) {
                     attempts++;
                     if (attempts < maxAttemptsForRetry) {
                         try {
@@ -824,7 +838,12 @@ public class ApiClient{{#jsr310}} extends JavaTimeFormatter{{/jsr310}} {
      * @param requestBuilder The current request
      */
     protected void addHeadersToRequest(HttpHeaders headers, BodyBuilder requestBuilder) {
+        {{#useJakartaEe}}
+        for (Entry<String, List<String>> entry : headers.headerSet()) {
+        {{/useJakartaEe}}
+        {{^useJakartaEe}}
         for (Entry<String, List<String>> entry : headers.entrySet()) {
+        {{/useJakartaEe}}
             List<String> values = entry.getValue();
             for (String value : values) {
                 if (value != null) {
@@ -858,7 +877,7 @@ public class ApiClient{{#jsr310}} extends JavaTimeFormatter{{/jsr310}} {
         String delimiter = "";
         for (final Map.Entry<String, List<String>> entry : cookies.entrySet()) {
             final String value = entry.getValue().get(entry.getValue().size() - 1);
-            cookieValue.append(String.format("%s%s=%s", delimiter, entry.getKey(), value));
+            cookieValue.append(String.format(java.util.Locale.ROOT, "%s%s=%s", delimiter, entry.getKey(), value));
             delimiter = "; ";
         }
         return cookieValue.toString();
@@ -874,7 +893,12 @@ public class ApiClient{{#jsr310}} extends JavaTimeFormatter{{/jsr310}} {
         XmlMapper xmlMapper = new XmlMapper();
         xmlMapper.configure(ToXmlGenerator.Feature.WRITE_XML_DECLARATION, true);
         {{#openApiNullable}}
+        {{^useJackson3}}
         xmlMapper.registerModule(new JsonNullableModule());
+        {{/useJackson3}}
+        {{#useJackson3}}
+        xmlMapper.registerModule(new JsonNullableJackson3Module());
+        {{/useJackson3}}
         {{/openApiNullable}}
         messageConverters.add(new MappingJackson2XmlHttpMessageConverter(xmlMapper));
 
@@ -937,7 +961,12 @@ public class ApiClient{{#jsr310}} extends JavaTimeFormatter{{/jsr310}} {
                 return "";
             }
             StringBuilder builder = new StringBuilder();
+            {{#useJakartaEe}}
+            for (Entry<String, List<String>> entry : headers.headerSet()) {
+            {{/useJakartaEe}}
+            {{^useJakartaEe}}
             for (Entry<String, List<String>> entry : headers.entrySet()) {
+            {{/useJakartaEe}}
                 builder.append(entry.getKey()).append("=[");
                 for (String value : entry.getValue()) {
                     builder.append(value).append(",");

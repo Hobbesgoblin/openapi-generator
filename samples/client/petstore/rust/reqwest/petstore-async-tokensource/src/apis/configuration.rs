@@ -12,8 +12,9 @@
 use std::sync::Arc;
 use google_cloud_token::TokenSource;
 use async_trait::async_trait;
+pub use reqwest::Client;
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct Configuration {
     pub base_path: String,
     pub user_agent: Option<String>,
@@ -21,6 +22,18 @@ pub struct Configuration {
     pub token_source: Arc<dyn TokenSource>,
 }
 
+
+impl std::fmt::Debug for Configuration {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut debug = f.debug_struct("Configuration");
+        debug
+            .field("base_path", &self.base_path)
+            .field("user_agent", &self.user_agent)
+            .field("client", &self.client);
+        debug.field("token_source", &"[REDACTED]");
+        debug.finish()
+    }
+}
 
 impl Configuration {
     pub fn new() -> Configuration {
@@ -31,7 +44,7 @@ impl Configuration {
 impl Default for Configuration {
     fn default() -> Self {
         Configuration {
-            base_path: "http://petstore.swagger.io/v2".to_owned(),
+            base_path: "http://localhost/v2".to_owned(),
             user_agent: Some("OpenAPI-Generator/1.0.0/rust".to_owned()),
             client: reqwest::Client::new(),
             token_source: Arc::new(NoopTokenSource{}),

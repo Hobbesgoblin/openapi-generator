@@ -36,11 +36,11 @@ public class HasOnlyReadOnly  {
   
   public static final String JSON_PROPERTY_BAR = "bar";
   
-  private String bar;
+  protected String bar;
 
   public static final String JSON_PROPERTY_FOO = "foo";
   
-  private String foo;
+  protected String foo;
 
 
   public HasOnlyReadOnly() {
@@ -59,7 +59,7 @@ public class HasOnlyReadOnly  {
    * Get bar
    * @return bar
    **/
-  @JsonProperty(JSON_PROPERTY_BAR)
+  @JsonProperty(value = JSON_PROPERTY_BAR, required = false)
   @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
   public String getBar() {
     return bar;
@@ -70,7 +70,7 @@ public class HasOnlyReadOnly  {
    * Get foo
    * @return foo
    **/
-  @JsonProperty(JSON_PROPERTY_FOO)
+  @JsonProperty(value = JSON_PROPERTY_FOO, required = false)
   @JsonInclude(value = JsonInclude.Include.USE_DEFAULTS)
   public String getFoo() {
     return foo;
@@ -106,10 +106,7 @@ public class HasOnlyReadOnly  {
    * (except the first line).
    */
   private static String toIndentedString(Object o) {
-    if (o == null) {
-      return "null";
-    }
-    return o.toString().replace("\n", "\n    ");
+    return o == null ? "null" : o.toString().replace("\n", "\n    ");
   }
 }
 

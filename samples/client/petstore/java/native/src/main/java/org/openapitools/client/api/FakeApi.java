@@ -62,15 +62,35 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 
-@javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaClientCodegen", comments = "Generator version: 7.15.0-SNAPSHOT")
+@javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaClientCodegen", comments = "Generator version: 7.27.0-SNAPSHOT")
 public class FakeApi {
+  /**
+   * Utility class for extending HttpRequest.Builder functionality.
+   */
+  private static class HttpRequestBuilderExtensions {
+    /**
+     * Adds additional headers to the provided HttpRequest.Builder. Useful for adding method/endpoint specific headers.
+     *
+     * @param builder the HttpRequest.Builder to which headers will be added
+     * @param headers a map of header names and values to add; may be null
+     * @return the same HttpRequest.Builder instance with the additional headers set
+     */
+    static HttpRequest.Builder withAdditionalHeaders(HttpRequest.Builder builder, Map<String, String> headers) {
+        if (headers != null) {
+            for (Map.Entry<String, String> entry : headers.entrySet()) {
+                builder.header(entry.getKey(), entry.getValue());
+            }
+        }
+        return builder;
+    }
+  }
   private final HttpClient memberVarHttpClient;
   private final ObjectMapper memberVarObjectMapper;
   private final String memberVarBaseUri;
   private final Consumer<HttpRequest.Builder> memberVarInterceptor;
   private final Duration memberVarReadTimeout;
   private final Consumer<HttpResponse<InputStream>> memberVarResponseInterceptor;
-  private final Consumer<HttpResponse<String>> memberVarAsyncResponseInterceptor;
+  private final Consumer<HttpResponse<InputStream>> memberVarAsyncResponseInterceptor;
 
   public FakeApi() {
     this(Configuration.getDefaultApiClient());
@@ -86,8 +106,17 @@ public class FakeApi {
     memberVarAsyncResponseInterceptor = apiClient.getAsyncResponseInterceptor();
   }
 
+
   protected ApiException getApiException(String operationId, HttpResponse<InputStream> response) throws IOException {
-    String body = response.body() == null ? null : new String(response.body().readAllBytes());
+    InputStream responseBody = ApiClient.getResponseBody(response);
+    String body = null;
+    try {
+      body = responseBody == null ? null : new String(responseBody.readAllBytes());
+    } finally {
+      if (responseBody != null) {
+        responseBody.close();
+      }
+    }
     String message = formatExceptionMessage(operationId, response.statusCode(), body);
     return new ApiException(response.statusCode(), message, response.headers(), body);
   }
@@ -106,10 +135,13 @@ public class FakeApi {
    * @return File
    * @throws ApiException If fail to read file content from response and write to disk
    */
-  public File downloadFileFromResponse(HttpResponse<InputStream> response) throws ApiException {
+  public File downloadFileFromResponse(HttpResponse<InputStream> response, InputStream responseBody) throws ApiException {
+    if (responseBody == null) {
+      throw new ApiException(new IOException("Response body is empty"));
+    }
     try {
       File file = prepareDownloadFile(response);
-      java.nio.file.Files.copy(response.body(), file.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+      java.nio.file.Files.copy(responseBody, file.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
       return file;
     } catch (IOException e) {
       throw new ApiException(e);
@@ -154,7 +186,18 @@ public class FakeApi {
    * @throws ApiException if fails to make API call
    */
   public FakeBigDecimalMap200Response fakeBigDecimalMap() throws ApiException {
-    ApiResponse<FakeBigDecimalMap200Response> localVarResponse = fakeBigDecimalMapWithHttpInfo();
+    return fakeBigDecimalMap(null);
+  }
+
+  /**
+   * 
+   * for Java apache and Java native, test toUrlQueryString for maps with BegDecimal keys
+   * @param headers Optional headers to include in the request
+   * @return FakeBigDecimalMap200Response
+   * @throws ApiException if fails to make API call
+   */
+  public FakeBigDecimalMap200Response fakeBigDecimalMap(Map<String, String> headers) throws ApiException {
+    ApiResponse<FakeBigDecimalMap200Response> localVarResponse = fakeBigDecimalMapWithHttpInfo(headers);
     return localVarResponse.getData();
   }
 
@@ -165,7 +208,18 @@ public class FakeApi {
    * @throws ApiException if fails to make API call
    */
   public ApiResponse<FakeBigDecimalMap200Response> fakeBigDecimalMapWithHttpInfo() throws ApiException {
-    HttpRequest.Builder localVarRequestBuilder = fakeBigDecimalMapRequestBuilder();
+    return fakeBigDecimalMapWithHttpInfo(null);
+  }
+
+  /**
+   * 
+   * for Java apache and Java native, test toUrlQueryString for maps with BegDecimal keys
+   * @param headers Optional headers to include in the request
+   * @return ApiResponse&lt;FakeBigDecimalMap200Response&gt;
+   * @throws ApiException if fails to make API call
+   */
+  public ApiResponse<FakeBigDecimalMap200Response> fakeBigDecimalMapWithHttpInfo(Map<String, String> headers) throws ApiException {
+    HttpRequest.Builder localVarRequestBuilder = fakeBigDecimalMapRequestBuilder(headers);
     try {
       HttpResponse<InputStream> localVarResponse = memberVarHttpClient.send(
           localVarRequestBuilder.build(),
@@ -173,11 +227,13 @@ public class FakeApi {
       if (memberVarResponseInterceptor != null) {
         memberVarResponseInterceptor.accept(localVarResponse);
       }
+      InputStream localVarResponseBody = null;
       try {
         if (localVarResponse.statusCode()/ 100 != 2) {
           throw getApiException("fakeBigDecimalMap", localVarResponse);
         }
-        if (localVarResponse.body() == null) {
+        localVarResponseBody = ApiClient.getResponseBody(localVarResponse);
+        if (localVarResponseBody == null) {
           return new ApiResponse<FakeBigDecimalMap200Response>(
               localVarResponse.statusCode(),
               localVarResponse.headers().map(),
@@ -187,10 +243,9 @@ public class FakeApi {
 
         
         
-        String responseBody = new String(localVarResponse.body().readAllBytes());
+        String responseBody = new String(localVarResponseBody.readAllBytes());
         FakeBigDecimalMap200Response responseValue = responseBody.isBlank()? null: memberVarObjectMapper.readValue(responseBody, new TypeReference<FakeBigDecimalMap200Response>() {});
         
-        localVarResponse.body().close();
 
         return new ApiResponse<FakeBigDecimalMap200Response>(
             localVarResponse.statusCode(),
@@ -198,6 +253,9 @@ public class FakeApi {
             responseValue
         );
       } finally {
+        if (localVarResponseBody != null) {
+          localVarResponseBody.close();
+        }
       }
     } catch (IOException e) {
       throw new ApiException(e);
@@ -208,7 +266,7 @@ public class FakeApi {
     }
   }
 
-  private HttpRequest.Builder fakeBigDecimalMapRequestBuilder() throws ApiException {
+  private HttpRequest.Builder fakeBigDecimalMapRequestBuilder(Map<String, String> headers) throws ApiException {
 
     HttpRequest.Builder localVarRequestBuilder = HttpRequest.newBuilder();
 
@@ -222,6 +280,8 @@ public class FakeApi {
     if (memberVarReadTimeout != null) {
       localVarRequestBuilder.timeout(memberVarReadTimeout);
     }
+    // Add custom headers if provided
+    localVarRequestBuilder = HttpRequestBuilderExtensions.withAdditionalHeaders(localVarRequestBuilder, headers);
     if (memberVarInterceptor != null) {
       memberVarInterceptor.accept(localVarRequestBuilder);
     }
@@ -235,7 +295,18 @@ public class FakeApi {
    * @throws ApiException if fails to make API call
    */
   public HealthCheckResult fakeHealthGet() throws ApiException {
-    ApiResponse<HealthCheckResult> localVarResponse = fakeHealthGetWithHttpInfo();
+    return fakeHealthGet(null);
+  }
+
+  /**
+   * Health check endpoint
+   * 
+   * @param headers Optional headers to include in the request
+   * @return HealthCheckResult
+   * @throws ApiException if fails to make API call
+   */
+  public HealthCheckResult fakeHealthGet(Map<String, String> headers) throws ApiException {
+    ApiResponse<HealthCheckResult> localVarResponse = fakeHealthGetWithHttpInfo(headers);
     return localVarResponse.getData();
   }
 
@@ -246,7 +317,18 @@ public class FakeApi {
    * @throws ApiException if fails to make API call
    */
   public ApiResponse<HealthCheckResult> fakeHealthGetWithHttpInfo() throws ApiException {
-    HttpRequest.Builder localVarRequestBuilder = fakeHealthGetRequestBuilder();
+    return fakeHealthGetWithHttpInfo(null);
+  }
+
+  /**
+   * Health check endpoint
+   * 
+   * @param headers Optional headers to include in the request
+   * @return ApiResponse&lt;HealthCheckResult&gt;
+   * @throws ApiException if fails to make API call
+   */
+  public ApiResponse<HealthCheckResult> fakeHealthGetWithHttpInfo(Map<String, String> headers) throws ApiException {
+    HttpRequest.Builder localVarRequestBuilder = fakeHealthGetRequestBuilder(headers);
     try {
       HttpResponse<InputStream> localVarResponse = memberVarHttpClient.send(
           localVarRequestBuilder.build(),
@@ -254,11 +336,13 @@ public class FakeApi {
       if (memberVarResponseInterceptor != null) {
         memberVarResponseInterceptor.accept(localVarResponse);
       }
+      InputStream localVarResponseBody = null;
       try {
         if (localVarResponse.statusCode()/ 100 != 2) {
           throw getApiException("fakeHealthGet", localVarResponse);
         }
-        if (localVarResponse.body() == null) {
+        localVarResponseBody = ApiClient.getResponseBody(localVarResponse);
+        if (localVarResponseBody == null) {
           return new ApiResponse<HealthCheckResult>(
               localVarResponse.statusCode(),
               localVarResponse.headers().map(),
@@ -268,10 +352,9 @@ public class FakeApi {
 
         
         
-        String responseBody = new String(localVarResponse.body().readAllBytes());
+        String responseBody = new String(localVarResponseBody.readAllBytes());
         HealthCheckResult responseValue = responseBody.isBlank()? null: memberVarObjectMapper.readValue(responseBody, new TypeReference<HealthCheckResult>() {});
         
-        localVarResponse.body().close();
 
         return new ApiResponse<HealthCheckResult>(
             localVarResponse.statusCode(),
@@ -279,6 +362,9 @@ public class FakeApi {
             responseValue
         );
       } finally {
+        if (localVarResponseBody != null) {
+          localVarResponseBody.close();
+        }
       }
     } catch (IOException e) {
       throw new ApiException(e);
@@ -289,7 +375,7 @@ public class FakeApi {
     }
   }
 
-  private HttpRequest.Builder fakeHealthGetRequestBuilder() throws ApiException {
+  private HttpRequest.Builder fakeHealthGetRequestBuilder(Map<String, String> headers) throws ApiException {
 
     HttpRequest.Builder localVarRequestBuilder = HttpRequest.newBuilder();
 
@@ -303,6 +389,8 @@ public class FakeApi {
     if (memberVarReadTimeout != null) {
       localVarRequestBuilder.timeout(memberVarReadTimeout);
     }
+    // Add custom headers if provided
+    localVarRequestBuilder = HttpRequestBuilderExtensions.withAdditionalHeaders(localVarRequestBuilder, headers);
     if (memberVarInterceptor != null) {
       memberVarInterceptor.accept(localVarRequestBuilder);
     }
@@ -317,7 +405,19 @@ public class FakeApi {
    * @throws ApiException if fails to make API call
    */
   public Boolean fakeOuterBooleanSerialize(@javax.annotation.Nullable Boolean body) throws ApiException {
-    ApiResponse<Boolean> localVarResponse = fakeOuterBooleanSerializeWithHttpInfo(body);
+    return fakeOuterBooleanSerialize(body, null);
+  }
+
+  /**
+   * 
+   * Test serialization of outer boolean types
+   * @param body Input boolean as post body (optional)
+   * @param headers Optional headers to include in the request
+   * @return Boolean
+   * @throws ApiException if fails to make API call
+   */
+  public Boolean fakeOuterBooleanSerialize(@javax.annotation.Nullable Boolean body, Map<String, String> headers) throws ApiException {
+    ApiResponse<Boolean> localVarResponse = fakeOuterBooleanSerializeWithHttpInfo(body, headers);
     return localVarResponse.getData();
   }
 
@@ -329,7 +429,19 @@ public class FakeApi {
    * @throws ApiException if fails to make API call
    */
   public ApiResponse<Boolean> fakeOuterBooleanSerializeWithHttpInfo(@javax.annotation.Nullable Boolean body) throws ApiException {
-    HttpRequest.Builder localVarRequestBuilder = fakeOuterBooleanSerializeRequestBuilder(body);
+    return fakeOuterBooleanSerializeWithHttpInfo(body, null);
+  }
+
+  /**
+   * 
+   * Test serialization of outer boolean types
+   * @param body Input boolean as post body (optional)
+   * @param headers Optional headers to include in the request
+   * @return ApiResponse&lt;Boolean&gt;
+   * @throws ApiException if fails to make API call
+   */
+  public ApiResponse<Boolean> fakeOuterBooleanSerializeWithHttpInfo(@javax.annotation.Nullable Boolean body, Map<String, String> headers) throws ApiException {
+    HttpRequest.Builder localVarRequestBuilder = fakeOuterBooleanSerializeRequestBuilder(body, headers);
     try {
       HttpResponse<InputStream> localVarResponse = memberVarHttpClient.send(
           localVarRequestBuilder.build(),
@@ -337,11 +449,13 @@ public class FakeApi {
       if (memberVarResponseInterceptor != null) {
         memberVarResponseInterceptor.accept(localVarResponse);
       }
+      InputStream localVarResponseBody = null;
       try {
         if (localVarResponse.statusCode()/ 100 != 2) {
           throw getApiException("fakeOuterBooleanSerialize", localVarResponse);
         }
-        if (localVarResponse.body() == null) {
+        localVarResponseBody = ApiClient.getResponseBody(localVarResponse);
+        if (localVarResponseBody == null) {
           return new ApiResponse<Boolean>(
               localVarResponse.statusCode(),
               localVarResponse.headers().map(),
@@ -351,10 +465,9 @@ public class FakeApi {
 
         
         
-        String responseBody = new String(localVarResponse.body().readAllBytes());
+        String responseBody = new String(localVarResponseBody.readAllBytes());
         Boolean responseValue = responseBody.isBlank()? null: memberVarObjectMapper.readValue(responseBody, new TypeReference<Boolean>() {});
         
-        localVarResponse.body().close();
 
         return new ApiResponse<Boolean>(
             localVarResponse.statusCode(),
@@ -362,6 +475,9 @@ public class FakeApi {
             responseValue
         );
       } finally {
+        if (localVarResponseBody != null) {
+          localVarResponseBody.close();
+        }
       }
     } catch (IOException e) {
       throw new ApiException(e);
@@ -372,7 +488,7 @@ public class FakeApi {
     }
   }
 
-  private HttpRequest.Builder fakeOuterBooleanSerializeRequestBuilder(@javax.annotation.Nullable Boolean body) throws ApiException {
+  private HttpRequest.Builder fakeOuterBooleanSerializeRequestBuilder(@javax.annotation.Nullable Boolean body, Map<String, String> headers) throws ApiException {
 
     HttpRequest.Builder localVarRequestBuilder = HttpRequest.newBuilder();
 
@@ -392,6 +508,8 @@ public class FakeApi {
     if (memberVarReadTimeout != null) {
       localVarRequestBuilder.timeout(memberVarReadTimeout);
     }
+    // Add custom headers if provided
+    localVarRequestBuilder = HttpRequestBuilderExtensions.withAdditionalHeaders(localVarRequestBuilder, headers);
     if (memberVarInterceptor != null) {
       memberVarInterceptor.accept(localVarRequestBuilder);
     }
@@ -406,7 +524,19 @@ public class FakeApi {
    * @throws ApiException if fails to make API call
    */
   public OuterComposite fakeOuterCompositeSerialize(@javax.annotation.Nullable OuterComposite outerComposite) throws ApiException {
-    ApiResponse<OuterComposite> localVarResponse = fakeOuterCompositeSerializeWithHttpInfo(outerComposite);
+    return fakeOuterCompositeSerialize(outerComposite, null);
+  }
+
+  /**
+   * 
+   * Test serialization of object with outer number type
+   * @param outerComposite Input composite as post body (optional)
+   * @param headers Optional headers to include in the request
+   * @return OuterComposite
+   * @throws ApiException if fails to make API call
+   */
+  public OuterComposite fakeOuterCompositeSerialize(@javax.annotation.Nullable OuterComposite outerComposite, Map<String, String> headers) throws ApiException {
+    ApiResponse<OuterComposite> localVarResponse = fakeOuterCompositeSerializeWithHttpInfo(outerComposite, headers);
     return localVarResponse.getData();
   }
 
@@ -418,7 +548,19 @@ public class FakeApi {
    * @throws ApiException if fails to make API call
    */
   public ApiResponse<OuterComposite> fakeOuterCompositeSerializeWithHttpInfo(@javax.annotation.Nullable OuterComposite outerComposite) throws ApiException {
-    HttpRequest.Builder localVarRequestBuilder = fakeOuterCompositeSerializeRequestBuilder(outerComposite);
+    return fakeOuterCompositeSerializeWithHttpInfo(outerComposite, null);
+  }
+
+  /**
+   * 
+   * Test serialization of object with outer number type
+   * @param outerComposite Input composite as post body (optional)
+   * @param headers Optional headers to include in the request
+   * @return ApiResponse&lt;OuterComposite&gt;
+   * @throws ApiException if fails to make API call
+   */
+  public ApiResponse<OuterComposite> fakeOuterCompositeSerializeWithHttpInfo(@javax.annotation.Nullable OuterComposite outerComposite, Map<String, String> headers) throws ApiException {
+    HttpRequest.Builder localVarRequestBuilder = fakeOuterCompositeSerializeRequestBuilder(outerComposite, headers);
     try {
       HttpResponse<InputStream> localVarResponse = memberVarHttpClient.send(
           localVarRequestBuilder.build(),
@@ -426,11 +568,13 @@ public class FakeApi {
       if (memberVarResponseInterceptor != null) {
         memberVarResponseInterceptor.accept(localVarResponse);
       }
+      InputStream localVarResponseBody = null;
       try {
         if (localVarResponse.statusCode()/ 100 != 2) {
           throw getApiException("fakeOuterCompositeSerialize", localVarResponse);
         }
-        if (localVarResponse.body() == null) {
+        localVarResponseBody = ApiClient.getResponseBody(localVarResponse);
+        if (localVarResponseBody == null) {
           return new ApiResponse<OuterComposite>(
               localVarResponse.statusCode(),
               localVarResponse.headers().map(),
@@ -440,10 +584,9 @@ public class FakeApi {
 
         
         
-        String responseBody = new String(localVarResponse.body().readAllBytes());
+        String responseBody = new String(localVarResponseBody.readAllBytes());
         OuterComposite responseValue = responseBody.isBlank()? null: memberVarObjectMapper.readValue(responseBody, new TypeReference<OuterComposite>() {});
         
-        localVarResponse.body().close();
 
         return new ApiResponse<OuterComposite>(
             localVarResponse.statusCode(),
@@ -451,6 +594,9 @@ public class FakeApi {
             responseValue
         );
       } finally {
+        if (localVarResponseBody != null) {
+          localVarResponseBody.close();
+        }
       }
     } catch (IOException e) {
       throw new ApiException(e);
@@ -461,7 +607,7 @@ public class FakeApi {
     }
   }
 
-  private HttpRequest.Builder fakeOuterCompositeSerializeRequestBuilder(@javax.annotation.Nullable OuterComposite outerComposite) throws ApiException {
+  private HttpRequest.Builder fakeOuterCompositeSerializeRequestBuilder(@javax.annotation.Nullable OuterComposite outerComposite, Map<String, String> headers) throws ApiException {
 
     HttpRequest.Builder localVarRequestBuilder = HttpRequest.newBuilder();
 
@@ -481,6 +627,8 @@ public class FakeApi {
     if (memberVarReadTimeout != null) {
       localVarRequestBuilder.timeout(memberVarReadTimeout);
     }
+    // Add custom headers if provided
+    localVarRequestBuilder = HttpRequestBuilderExtensions.withAdditionalHeaders(localVarRequestBuilder, headers);
     if (memberVarInterceptor != null) {
       memberVarInterceptor.accept(localVarRequestBuilder);
     }
@@ -495,7 +643,19 @@ public class FakeApi {
    * @throws ApiException if fails to make API call
    */
   public BigDecimal fakeOuterNumberSerialize(@javax.annotation.Nullable BigDecimal body) throws ApiException {
-    ApiResponse<BigDecimal> localVarResponse = fakeOuterNumberSerializeWithHttpInfo(body);
+    return fakeOuterNumberSerialize(body, null);
+  }
+
+  /**
+   * 
+   * Test serialization of outer number types
+   * @param body Input number as post body (optional)
+   * @param headers Optional headers to include in the request
+   * @return BigDecimal
+   * @throws ApiException if fails to make API call
+   */
+  public BigDecimal fakeOuterNumberSerialize(@javax.annotation.Nullable BigDecimal body, Map<String, String> headers) throws ApiException {
+    ApiResponse<BigDecimal> localVarResponse = fakeOuterNumberSerializeWithHttpInfo(body, headers);
     return localVarResponse.getData();
   }
 
@@ -507,7 +667,19 @@ public class FakeApi {
    * @throws ApiException if fails to make API call
    */
   public ApiResponse<BigDecimal> fakeOuterNumberSerializeWithHttpInfo(@javax.annotation.Nullable BigDecimal body) throws ApiException {
-    HttpRequest.Builder localVarRequestBuilder = fakeOuterNumberSerializeRequestBuilder(body);
+    return fakeOuterNumberSerializeWithHttpInfo(body, null);
+  }
+
+  /**
+   * 
+   * Test serialization of outer number types
+   * @param body Input number as post body (optional)
+   * @param headers Optional headers to include in the request
+   * @return ApiResponse&lt;BigDecimal&gt;
+   * @throws ApiException if fails to make API call
+   */
+  public ApiResponse<BigDecimal> fakeOuterNumberSerializeWithHttpInfo(@javax.annotation.Nullable BigDecimal body, Map<String, String> headers) throws ApiException {
+    HttpRequest.Builder localVarRequestBuilder = fakeOuterNumberSerializeRequestBuilder(body, headers);
     try {
       HttpResponse<InputStream> localVarResponse = memberVarHttpClient.send(
           localVarRequestBuilder.build(),
@@ -515,11 +687,13 @@ public class FakeApi {
       if (memberVarResponseInterceptor != null) {
         memberVarResponseInterceptor.accept(localVarResponse);
       }
+      InputStream localVarResponseBody = null;
       try {
         if (localVarResponse.statusCode()/ 100 != 2) {
           throw getApiException("fakeOuterNumberSerialize", localVarResponse);
         }
-        if (localVarResponse.body() == null) {
+        localVarResponseBody = ApiClient.getResponseBody(localVarResponse);
+        if (localVarResponseBody == null) {
           return new ApiResponse<BigDecimal>(
               localVarResponse.statusCode(),
               localVarResponse.headers().map(),
@@ -529,10 +703,9 @@ public class FakeApi {
 
         
         
-        String responseBody = new String(localVarResponse.body().readAllBytes());
+        String responseBody = new String(localVarResponseBody.readAllBytes());
         BigDecimal responseValue = responseBody.isBlank()? null: memberVarObjectMapper.readValue(responseBody, new TypeReference<BigDecimal>() {});
         
-        localVarResponse.body().close();
 
         return new ApiResponse<BigDecimal>(
             localVarResponse.statusCode(),
@@ -540,6 +713,9 @@ public class FakeApi {
             responseValue
         );
       } finally {
+        if (localVarResponseBody != null) {
+          localVarResponseBody.close();
+        }
       }
     } catch (IOException e) {
       throw new ApiException(e);
@@ -550,7 +726,7 @@ public class FakeApi {
     }
   }
 
-  private HttpRequest.Builder fakeOuterNumberSerializeRequestBuilder(@javax.annotation.Nullable BigDecimal body) throws ApiException {
+  private HttpRequest.Builder fakeOuterNumberSerializeRequestBuilder(@javax.annotation.Nullable BigDecimal body, Map<String, String> headers) throws ApiException {
 
     HttpRequest.Builder localVarRequestBuilder = HttpRequest.newBuilder();
 
@@ -570,6 +746,8 @@ public class FakeApi {
     if (memberVarReadTimeout != null) {
       localVarRequestBuilder.timeout(memberVarReadTimeout);
     }
+    // Add custom headers if provided
+    localVarRequestBuilder = HttpRequestBuilderExtensions.withAdditionalHeaders(localVarRequestBuilder, headers);
     if (memberVarInterceptor != null) {
       memberVarInterceptor.accept(localVarRequestBuilder);
     }
@@ -584,7 +762,19 @@ public class FakeApi {
    * @throws ApiException if fails to make API call
    */
   public String fakeOuterStringSerialize(@javax.annotation.Nullable String body) throws ApiException {
-    ApiResponse<String> localVarResponse = fakeOuterStringSerializeWithHttpInfo(body);
+    return fakeOuterStringSerialize(body, null);
+  }
+
+  /**
+   * 
+   * Test serialization of outer string types
+   * @param body Input string as post body (optional)
+   * @param headers Optional headers to include in the request
+   * @return String
+   * @throws ApiException if fails to make API call
+   */
+  public String fakeOuterStringSerialize(@javax.annotation.Nullable String body, Map<String, String> headers) throws ApiException {
+    ApiResponse<String> localVarResponse = fakeOuterStringSerializeWithHttpInfo(body, headers);
     return localVarResponse.getData();
   }
 
@@ -596,7 +786,19 @@ public class FakeApi {
    * @throws ApiException if fails to make API call
    */
   public ApiResponse<String> fakeOuterStringSerializeWithHttpInfo(@javax.annotation.Nullable String body) throws ApiException {
-    HttpRequest.Builder localVarRequestBuilder = fakeOuterStringSerializeRequestBuilder(body);
+    return fakeOuterStringSerializeWithHttpInfo(body, null);
+  }
+
+  /**
+   * 
+   * Test serialization of outer string types
+   * @param body Input string as post body (optional)
+   * @param headers Optional headers to include in the request
+   * @return ApiResponse&lt;String&gt;
+   * @throws ApiException if fails to make API call
+   */
+  public ApiResponse<String> fakeOuterStringSerializeWithHttpInfo(@javax.annotation.Nullable String body, Map<String, String> headers) throws ApiException {
+    HttpRequest.Builder localVarRequestBuilder = fakeOuterStringSerializeRequestBuilder(body, headers);
     try {
       HttpResponse<InputStream> localVarResponse = memberVarHttpClient.send(
           localVarRequestBuilder.build(),
@@ -604,11 +806,13 @@ public class FakeApi {
       if (memberVarResponseInterceptor != null) {
         memberVarResponseInterceptor.accept(localVarResponse);
       }
+      InputStream localVarResponseBody = null;
       try {
         if (localVarResponse.statusCode()/ 100 != 2) {
           throw getApiException("fakeOuterStringSerialize", localVarResponse);
         }
-        if (localVarResponse.body() == null) {
+        localVarResponseBody = ApiClient.getResponseBody(localVarResponse);
+        if (localVarResponseBody == null) {
           return new ApiResponse<String>(
               localVarResponse.statusCode(),
               localVarResponse.headers().map(),
@@ -618,10 +822,9 @@ public class FakeApi {
 
         
         
-        String responseBody = new String(localVarResponse.body().readAllBytes());
+        String responseBody = new String(localVarResponseBody.readAllBytes());
         String responseValue = responseBody.isBlank()? null: memberVarObjectMapper.readValue(responseBody, new TypeReference<String>() {});
         
-        localVarResponse.body().close();
 
         return new ApiResponse<String>(
             localVarResponse.statusCode(),
@@ -629,6 +832,9 @@ public class FakeApi {
             responseValue
         );
       } finally {
+        if (localVarResponseBody != null) {
+          localVarResponseBody.close();
+        }
       }
     } catch (IOException e) {
       throw new ApiException(e);
@@ -639,7 +845,7 @@ public class FakeApi {
     }
   }
 
-  private HttpRequest.Builder fakeOuterStringSerializeRequestBuilder(@javax.annotation.Nullable String body) throws ApiException {
+  private HttpRequest.Builder fakeOuterStringSerializeRequestBuilder(@javax.annotation.Nullable String body, Map<String, String> headers) throws ApiException {
 
     HttpRequest.Builder localVarRequestBuilder = HttpRequest.newBuilder();
 
@@ -654,6 +860,8 @@ public class FakeApi {
     if (memberVarReadTimeout != null) {
       localVarRequestBuilder.timeout(memberVarReadTimeout);
     }
+    // Add custom headers if provided
+    localVarRequestBuilder = HttpRequestBuilderExtensions.withAdditionalHeaders(localVarRequestBuilder, headers);
     if (memberVarInterceptor != null) {
       memberVarInterceptor.accept(localVarRequestBuilder);
     }
@@ -667,7 +875,18 @@ public class FakeApi {
    * @throws ApiException if fails to make API call
    */
   public List<OuterEnum> getApplicationJsonUtf8() throws ApiException {
-    ApiResponse<List<OuterEnum>> localVarResponse = getApplicationJsonUtf8WithHttpInfo();
+    return getApplicationJsonUtf8(null);
+  }
+
+  /**
+   * application/json UTF8
+   * 
+   * @param headers Optional headers to include in the request
+   * @return List&lt;OuterEnum&gt;
+   * @throws ApiException if fails to make API call
+   */
+  public List<OuterEnum> getApplicationJsonUtf8(Map<String, String> headers) throws ApiException {
+    ApiResponse<List<OuterEnum>> localVarResponse = getApplicationJsonUtf8WithHttpInfo(headers);
     return localVarResponse.getData();
   }
 
@@ -678,7 +897,18 @@ public class FakeApi {
    * @throws ApiException if fails to make API call
    */
   public ApiResponse<List<OuterEnum>> getApplicationJsonUtf8WithHttpInfo() throws ApiException {
-    HttpRequest.Builder localVarRequestBuilder = getApplicationJsonUtf8RequestBuilder();
+    return getApplicationJsonUtf8WithHttpInfo(null);
+  }
+
+  /**
+   * application/json UTF8
+   * 
+   * @param headers Optional headers to include in the request
+   * @return ApiResponse&lt;List&lt;OuterEnum&gt;&gt;
+   * @throws ApiException if fails to make API call
+   */
+  public ApiResponse<List<OuterEnum>> getApplicationJsonUtf8WithHttpInfo(Map<String, String> headers) throws ApiException {
+    HttpRequest.Builder localVarRequestBuilder = getApplicationJsonUtf8RequestBuilder(headers);
     try {
       HttpResponse<InputStream> localVarResponse = memberVarHttpClient.send(
           localVarRequestBuilder.build(),
@@ -686,11 +916,13 @@ public class FakeApi {
       if (memberVarResponseInterceptor != null) {
         memberVarResponseInterceptor.accept(localVarResponse);
       }
+      InputStream localVarResponseBody = null;
       try {
         if (localVarResponse.statusCode()/ 100 != 2) {
           throw getApiException("getApplicationJsonUtf8", localVarResponse);
         }
-        if (localVarResponse.body() == null) {
+        localVarResponseBody = ApiClient.getResponseBody(localVarResponse);
+        if (localVarResponseBody == null) {
           return new ApiResponse<List<OuterEnum>>(
               localVarResponse.statusCode(),
               localVarResponse.headers().map(),
@@ -700,10 +932,9 @@ public class FakeApi {
 
         
         
-        String responseBody = new String(localVarResponse.body().readAllBytes());
+        String responseBody = new String(localVarResponseBody.readAllBytes());
         List<OuterEnum> responseValue = responseBody.isBlank()? null: memberVarObjectMapper.readValue(responseBody, new TypeReference<List<OuterEnum>>() {});
         
-        localVarResponse.body().close();
 
         return new ApiResponse<List<OuterEnum>>(
             localVarResponse.statusCode(),
@@ -711,6 +942,9 @@ public class FakeApi {
             responseValue
         );
       } finally {
+        if (localVarResponseBody != null) {
+          localVarResponseBody.close();
+        }
       }
     } catch (IOException e) {
       throw new ApiException(e);
@@ -721,7 +955,7 @@ public class FakeApi {
     }
   }
 
-  private HttpRequest.Builder getApplicationJsonUtf8RequestBuilder() throws ApiException {
+  private HttpRequest.Builder getApplicationJsonUtf8RequestBuilder(Map<String, String> headers) throws ApiException {
 
     HttpRequest.Builder localVarRequestBuilder = HttpRequest.newBuilder();
 
@@ -735,6 +969,8 @@ public class FakeApi {
     if (memberVarReadTimeout != null) {
       localVarRequestBuilder.timeout(memberVarReadTimeout);
     }
+    // Add custom headers if provided
+    localVarRequestBuilder = HttpRequestBuilderExtensions.withAdditionalHeaders(localVarRequestBuilder, headers);
     if (memberVarInterceptor != null) {
       memberVarInterceptor.accept(localVarRequestBuilder);
     }
@@ -748,7 +984,18 @@ public class FakeApi {
    * @throws ApiException if fails to make API call
    */
   public List<OuterEnum> getArrayOfEnums() throws ApiException {
-    ApiResponse<List<OuterEnum>> localVarResponse = getArrayOfEnumsWithHttpInfo();
+    return getArrayOfEnums(null);
+  }
+
+  /**
+   * Array of Enums
+   * 
+   * @param headers Optional headers to include in the request
+   * @return List&lt;OuterEnum&gt;
+   * @throws ApiException if fails to make API call
+   */
+  public List<OuterEnum> getArrayOfEnums(Map<String, String> headers) throws ApiException {
+    ApiResponse<List<OuterEnum>> localVarResponse = getArrayOfEnumsWithHttpInfo(headers);
     return localVarResponse.getData();
   }
 
@@ -759,7 +1006,18 @@ public class FakeApi {
    * @throws ApiException if fails to make API call
    */
   public ApiResponse<List<OuterEnum>> getArrayOfEnumsWithHttpInfo() throws ApiException {
-    HttpRequest.Builder localVarRequestBuilder = getArrayOfEnumsRequestBuilder();
+    return getArrayOfEnumsWithHttpInfo(null);
+  }
+
+  /**
+   * Array of Enums
+   * 
+   * @param headers Optional headers to include in the request
+   * @return ApiResponse&lt;List&lt;OuterEnum&gt;&gt;
+   * @throws ApiException if fails to make API call
+   */
+  public ApiResponse<List<OuterEnum>> getArrayOfEnumsWithHttpInfo(Map<String, String> headers) throws ApiException {
+    HttpRequest.Builder localVarRequestBuilder = getArrayOfEnumsRequestBuilder(headers);
     try {
       HttpResponse<InputStream> localVarResponse = memberVarHttpClient.send(
           localVarRequestBuilder.build(),
@@ -767,11 +1025,13 @@ public class FakeApi {
       if (memberVarResponseInterceptor != null) {
         memberVarResponseInterceptor.accept(localVarResponse);
       }
+      InputStream localVarResponseBody = null;
       try {
         if (localVarResponse.statusCode()/ 100 != 2) {
           throw getApiException("getArrayOfEnums", localVarResponse);
         }
-        if (localVarResponse.body() == null) {
+        localVarResponseBody = ApiClient.getResponseBody(localVarResponse);
+        if (localVarResponseBody == null) {
           return new ApiResponse<List<OuterEnum>>(
               localVarResponse.statusCode(),
               localVarResponse.headers().map(),
@@ -781,10 +1041,9 @@ public class FakeApi {
 
         
         
-        String responseBody = new String(localVarResponse.body().readAllBytes());
+        String responseBody = new String(localVarResponseBody.readAllBytes());
         List<OuterEnum> responseValue = responseBody.isBlank()? null: memberVarObjectMapper.readValue(responseBody, new TypeReference<List<OuterEnum>>() {});
         
-        localVarResponse.body().close();
 
         return new ApiResponse<List<OuterEnum>>(
             localVarResponse.statusCode(),
@@ -792,6 +1051,9 @@ public class FakeApi {
             responseValue
         );
       } finally {
+        if (localVarResponseBody != null) {
+          localVarResponseBody.close();
+        }
       }
     } catch (IOException e) {
       throw new ApiException(e);
@@ -802,7 +1064,7 @@ public class FakeApi {
     }
   }
 
-  private HttpRequest.Builder getArrayOfEnumsRequestBuilder() throws ApiException {
+  private HttpRequest.Builder getArrayOfEnumsRequestBuilder(Map<String, String> headers) throws ApiException {
 
     HttpRequest.Builder localVarRequestBuilder = HttpRequest.newBuilder();
 
@@ -816,6 +1078,8 @@ public class FakeApi {
     if (memberVarReadTimeout != null) {
       localVarRequestBuilder.timeout(memberVarReadTimeout);
     }
+    // Add custom headers if provided
+    localVarRequestBuilder = HttpRequestBuilderExtensions.withAdditionalHeaders(localVarRequestBuilder, headers);
     if (memberVarInterceptor != null) {
       memberVarInterceptor.accept(localVarRequestBuilder);
     }
@@ -829,7 +1093,18 @@ public class FakeApi {
    * @throws ApiException if fails to make API call
    */
   public void testAdditionalPropertiesReference(@javax.annotation.Nonnull Map<String, Object> requestBody) throws ApiException {
-    testAdditionalPropertiesReferenceWithHttpInfo(requestBody);
+    testAdditionalPropertiesReference(requestBody, null);
+  }
+
+  /**
+   * test referenced additionalProperties
+   * 
+   * @param requestBody request body (required)
+   * @param headers Optional headers to include in the request
+   * @throws ApiException if fails to make API call
+   */
+  public void testAdditionalPropertiesReference(@javax.annotation.Nonnull Map<String, Object> requestBody, Map<String, String> headers) throws ApiException {
+    testAdditionalPropertiesReferenceWithHttpInfo(requestBody, headers);
   }
 
   /**
@@ -840,7 +1115,19 @@ public class FakeApi {
    * @throws ApiException if fails to make API call
    */
   public ApiResponse<Void> testAdditionalPropertiesReferenceWithHttpInfo(@javax.annotation.Nonnull Map<String, Object> requestBody) throws ApiException {
-    HttpRequest.Builder localVarRequestBuilder = testAdditionalPropertiesReferenceRequestBuilder(requestBody);
+    return testAdditionalPropertiesReferenceWithHttpInfo(requestBody, null);
+  }
+
+  /**
+   * test referenced additionalProperties
+   * 
+   * @param requestBody request body (required)
+   * @param headers Optional headers to include in the request
+   * @return ApiResponse&lt;Void&gt;
+   * @throws ApiException if fails to make API call
+   */
+  public ApiResponse<Void> testAdditionalPropertiesReferenceWithHttpInfo(@javax.annotation.Nonnull Map<String, Object> requestBody, Map<String, String> headers) throws ApiException {
+    HttpRequest.Builder localVarRequestBuilder = testAdditionalPropertiesReferenceRequestBuilder(requestBody, headers);
     try {
       HttpResponse<InputStream> localVarResponse = memberVarHttpClient.send(
           localVarRequestBuilder.build(),
@@ -848,9 +1135,14 @@ public class FakeApi {
       if (memberVarResponseInterceptor != null) {
         memberVarResponseInterceptor.accept(localVarResponse);
       }
+      InputStream localVarResponseBody = null;
       try {
         if (localVarResponse.statusCode()/ 100 != 2) {
           throw getApiException("testAdditionalPropertiesReference", localVarResponse);
+        }
+        localVarResponseBody = ApiClient.getResponseBody(localVarResponse);
+        if (localVarResponseBody != null) {
+          localVarResponseBody.readAllBytes();
         }
         return new ApiResponse<>(
             localVarResponse.statusCode(),
@@ -858,11 +1150,9 @@ public class FakeApi {
             null
         );
       } finally {
-        // Drain the InputStream
-        while (localVarResponse.body().read() != -1) {
-          // Ignore
+        if (localVarResponseBody != null) {
+          localVarResponseBody.close();
         }
-        localVarResponse.body().close();
       }
     } catch (IOException e) {
       throw new ApiException(e);
@@ -873,7 +1163,7 @@ public class FakeApi {
     }
   }
 
-  private HttpRequest.Builder testAdditionalPropertiesReferenceRequestBuilder(@javax.annotation.Nonnull Map<String, Object> requestBody) throws ApiException {
+  private HttpRequest.Builder testAdditionalPropertiesReferenceRequestBuilder(@javax.annotation.Nonnull Map<String, Object> requestBody, Map<String, String> headers) throws ApiException {
     // verify the required parameter 'requestBody' is set
     if (requestBody == null) {
       throw new ApiException(400, "Missing the required parameter 'requestBody' when calling testAdditionalPropertiesReference");
@@ -897,6 +1187,8 @@ public class FakeApi {
     if (memberVarReadTimeout != null) {
       localVarRequestBuilder.timeout(memberVarReadTimeout);
     }
+    // Add custom headers if provided
+    localVarRequestBuilder = HttpRequestBuilderExtensions.withAdditionalHeaders(localVarRequestBuilder, headers);
     if (memberVarInterceptor != null) {
       memberVarInterceptor.accept(localVarRequestBuilder);
     }
@@ -910,7 +1202,18 @@ public class FakeApi {
    * @throws ApiException if fails to make API call
    */
   public void testBodyWithFileSchema(@javax.annotation.Nonnull FileSchemaTestClass fileSchemaTestClass) throws ApiException {
-    testBodyWithFileSchemaWithHttpInfo(fileSchemaTestClass);
+    testBodyWithFileSchema(fileSchemaTestClass, null);
+  }
+
+  /**
+   * 
+   * For this test, the body for this request much reference a schema named &#x60;File&#x60;.
+   * @param fileSchemaTestClass  (required)
+   * @param headers Optional headers to include in the request
+   * @throws ApiException if fails to make API call
+   */
+  public void testBodyWithFileSchema(@javax.annotation.Nonnull FileSchemaTestClass fileSchemaTestClass, Map<String, String> headers) throws ApiException {
+    testBodyWithFileSchemaWithHttpInfo(fileSchemaTestClass, headers);
   }
 
   /**
@@ -921,7 +1224,19 @@ public class FakeApi {
    * @throws ApiException if fails to make API call
    */
   public ApiResponse<Void> testBodyWithFileSchemaWithHttpInfo(@javax.annotation.Nonnull FileSchemaTestClass fileSchemaTestClass) throws ApiException {
-    HttpRequest.Builder localVarRequestBuilder = testBodyWithFileSchemaRequestBuilder(fileSchemaTestClass);
+    return testBodyWithFileSchemaWithHttpInfo(fileSchemaTestClass, null);
+  }
+
+  /**
+   * 
+   * For this test, the body for this request much reference a schema named &#x60;File&#x60;.
+   * @param fileSchemaTestClass  (required)
+   * @param headers Optional headers to include in the request
+   * @return ApiResponse&lt;Void&gt;
+   * @throws ApiException if fails to make API call
+   */
+  public ApiResponse<Void> testBodyWithFileSchemaWithHttpInfo(@javax.annotation.Nonnull FileSchemaTestClass fileSchemaTestClass, Map<String, String> headers) throws ApiException {
+    HttpRequest.Builder localVarRequestBuilder = testBodyWithFileSchemaRequestBuilder(fileSchemaTestClass, headers);
     try {
       HttpResponse<InputStream> localVarResponse = memberVarHttpClient.send(
           localVarRequestBuilder.build(),
@@ -929,9 +1244,14 @@ public class FakeApi {
       if (memberVarResponseInterceptor != null) {
         memberVarResponseInterceptor.accept(localVarResponse);
       }
+      InputStream localVarResponseBody = null;
       try {
         if (localVarResponse.statusCode()/ 100 != 2) {
           throw getApiException("testBodyWithFileSchema", localVarResponse);
+        }
+        localVarResponseBody = ApiClient.getResponseBody(localVarResponse);
+        if (localVarResponseBody != null) {
+          localVarResponseBody.readAllBytes();
         }
         return new ApiResponse<>(
             localVarResponse.statusCode(),
@@ -939,11 +1259,9 @@ public class FakeApi {
             null
         );
       } finally {
-        // Drain the InputStream
-        while (localVarResponse.body().read() != -1) {
-          // Ignore
+        if (localVarResponseBody != null) {
+          localVarResponseBody.close();
         }
-        localVarResponse.body().close();
       }
     } catch (IOException e) {
       throw new ApiException(e);
@@ -954,7 +1272,7 @@ public class FakeApi {
     }
   }
 
-  private HttpRequest.Builder testBodyWithFileSchemaRequestBuilder(@javax.annotation.Nonnull FileSchemaTestClass fileSchemaTestClass) throws ApiException {
+  private HttpRequest.Builder testBodyWithFileSchemaRequestBuilder(@javax.annotation.Nonnull FileSchemaTestClass fileSchemaTestClass, Map<String, String> headers) throws ApiException {
     // verify the required parameter 'fileSchemaTestClass' is set
     if (fileSchemaTestClass == null) {
       throw new ApiException(400, "Missing the required parameter 'fileSchemaTestClass' when calling testBodyWithFileSchema");
@@ -978,6 +1296,8 @@ public class FakeApi {
     if (memberVarReadTimeout != null) {
       localVarRequestBuilder.timeout(memberVarReadTimeout);
     }
+    // Add custom headers if provided
+    localVarRequestBuilder = HttpRequestBuilderExtensions.withAdditionalHeaders(localVarRequestBuilder, headers);
     if (memberVarInterceptor != null) {
       memberVarInterceptor.accept(localVarRequestBuilder);
     }
@@ -992,7 +1312,19 @@ public class FakeApi {
    * @throws ApiException if fails to make API call
    */
   public void testBodyWithQueryParams(@javax.annotation.Nonnull String query, @javax.annotation.Nonnull User user) throws ApiException {
-    testBodyWithQueryParamsWithHttpInfo(query, user);
+    testBodyWithQueryParams(query, user, null);
+  }
+
+  /**
+   * 
+   * 
+   * @param query  (required)
+   * @param user  (required)
+   * @param headers Optional headers to include in the request
+   * @throws ApiException if fails to make API call
+   */
+  public void testBodyWithQueryParams(@javax.annotation.Nonnull String query, @javax.annotation.Nonnull User user, Map<String, String> headers) throws ApiException {
+    testBodyWithQueryParamsWithHttpInfo(query, user, headers);
   }
 
   /**
@@ -1004,7 +1336,20 @@ public class FakeApi {
    * @throws ApiException if fails to make API call
    */
   public ApiResponse<Void> testBodyWithQueryParamsWithHttpInfo(@javax.annotation.Nonnull String query, @javax.annotation.Nonnull User user) throws ApiException {
-    HttpRequest.Builder localVarRequestBuilder = testBodyWithQueryParamsRequestBuilder(query, user);
+    return testBodyWithQueryParamsWithHttpInfo(query, user, null);
+  }
+
+  /**
+   * 
+   * 
+   * @param query  (required)
+   * @param user  (required)
+   * @param headers Optional headers to include in the request
+   * @return ApiResponse&lt;Void&gt;
+   * @throws ApiException if fails to make API call
+   */
+  public ApiResponse<Void> testBodyWithQueryParamsWithHttpInfo(@javax.annotation.Nonnull String query, @javax.annotation.Nonnull User user, Map<String, String> headers) throws ApiException {
+    HttpRequest.Builder localVarRequestBuilder = testBodyWithQueryParamsRequestBuilder(query, user, headers);
     try {
       HttpResponse<InputStream> localVarResponse = memberVarHttpClient.send(
           localVarRequestBuilder.build(),
@@ -1012,9 +1357,14 @@ public class FakeApi {
       if (memberVarResponseInterceptor != null) {
         memberVarResponseInterceptor.accept(localVarResponse);
       }
+      InputStream localVarResponseBody = null;
       try {
         if (localVarResponse.statusCode()/ 100 != 2) {
           throw getApiException("testBodyWithQueryParams", localVarResponse);
+        }
+        localVarResponseBody = ApiClient.getResponseBody(localVarResponse);
+        if (localVarResponseBody != null) {
+          localVarResponseBody.readAllBytes();
         }
         return new ApiResponse<>(
             localVarResponse.statusCode(),
@@ -1022,11 +1372,9 @@ public class FakeApi {
             null
         );
       } finally {
-        // Drain the InputStream
-        while (localVarResponse.body().read() != -1) {
-          // Ignore
+        if (localVarResponseBody != null) {
+          localVarResponseBody.close();
         }
-        localVarResponse.body().close();
       }
     } catch (IOException e) {
       throw new ApiException(e);
@@ -1037,7 +1385,7 @@ public class FakeApi {
     }
   }
 
-  private HttpRequest.Builder testBodyWithQueryParamsRequestBuilder(@javax.annotation.Nonnull String query, @javax.annotation.Nonnull User user) throws ApiException {
+  private HttpRequest.Builder testBodyWithQueryParamsRequestBuilder(@javax.annotation.Nonnull String query, @javax.annotation.Nonnull User user, Map<String, String> headers) throws ApiException {
     // verify the required parameter 'query' is set
     if (query == null) {
       throw new ApiException(400, "Missing the required parameter 'query' when calling testBodyWithQueryParams");
@@ -1080,6 +1428,8 @@ public class FakeApi {
     if (memberVarReadTimeout != null) {
       localVarRequestBuilder.timeout(memberVarReadTimeout);
     }
+    // Add custom headers if provided
+    localVarRequestBuilder = HttpRequestBuilderExtensions.withAdditionalHeaders(localVarRequestBuilder, headers);
     if (memberVarInterceptor != null) {
       memberVarInterceptor.accept(localVarRequestBuilder);
     }
@@ -1094,7 +1444,19 @@ public class FakeApi {
    * @throws ApiException if fails to make API call
    */
   public Client testClientModel(@javax.annotation.Nonnull Client client) throws ApiException {
-    ApiResponse<Client> localVarResponse = testClientModelWithHttpInfo(client);
+    return testClientModel(client, null);
+  }
+
+  /**
+   * To test \&quot;client\&quot; model
+   * To test \&quot;client\&quot; model
+   * @param client client model (required)
+   * @param headers Optional headers to include in the request
+   * @return Client
+   * @throws ApiException if fails to make API call
+   */
+  public Client testClientModel(@javax.annotation.Nonnull Client client, Map<String, String> headers) throws ApiException {
+    ApiResponse<Client> localVarResponse = testClientModelWithHttpInfo(client, headers);
     return localVarResponse.getData();
   }
 
@@ -1106,7 +1468,19 @@ public class FakeApi {
    * @throws ApiException if fails to make API call
    */
   public ApiResponse<Client> testClientModelWithHttpInfo(@javax.annotation.Nonnull Client client) throws ApiException {
-    HttpRequest.Builder localVarRequestBuilder = testClientModelRequestBuilder(client);
+    return testClientModelWithHttpInfo(client, null);
+  }
+
+  /**
+   * To test \&quot;client\&quot; model
+   * To test \&quot;client\&quot; model
+   * @param client client model (required)
+   * @param headers Optional headers to include in the request
+   * @return ApiResponse&lt;Client&gt;
+   * @throws ApiException if fails to make API call
+   */
+  public ApiResponse<Client> testClientModelWithHttpInfo(@javax.annotation.Nonnull Client client, Map<String, String> headers) throws ApiException {
+    HttpRequest.Builder localVarRequestBuilder = testClientModelRequestBuilder(client, headers);
     try {
       HttpResponse<InputStream> localVarResponse = memberVarHttpClient.send(
           localVarRequestBuilder.build(),
@@ -1114,11 +1488,13 @@ public class FakeApi {
       if (memberVarResponseInterceptor != null) {
         memberVarResponseInterceptor.accept(localVarResponse);
       }
+      InputStream localVarResponseBody = null;
       try {
         if (localVarResponse.statusCode()/ 100 != 2) {
           throw getApiException("testClientModel", localVarResponse);
         }
-        if (localVarResponse.body() == null) {
+        localVarResponseBody = ApiClient.getResponseBody(localVarResponse);
+        if (localVarResponseBody == null) {
           return new ApiResponse<Client>(
               localVarResponse.statusCode(),
               localVarResponse.headers().map(),
@@ -1128,10 +1504,9 @@ public class FakeApi {
 
         
         
-        String responseBody = new String(localVarResponse.body().readAllBytes());
+        String responseBody = new String(localVarResponseBody.readAllBytes());
         Client responseValue = responseBody.isBlank()? null: memberVarObjectMapper.readValue(responseBody, new TypeReference<Client>() {});
         
-        localVarResponse.body().close();
 
         return new ApiResponse<Client>(
             localVarResponse.statusCode(),
@@ -1139,6 +1514,9 @@ public class FakeApi {
             responseValue
         );
       } finally {
+        if (localVarResponseBody != null) {
+          localVarResponseBody.close();
+        }
       }
     } catch (IOException e) {
       throw new ApiException(e);
@@ -1149,7 +1527,7 @@ public class FakeApi {
     }
   }
 
-  private HttpRequest.Builder testClientModelRequestBuilder(@javax.annotation.Nonnull Client client) throws ApiException {
+  private HttpRequest.Builder testClientModelRequestBuilder(@javax.annotation.Nonnull Client client, Map<String, String> headers) throws ApiException {
     // verify the required parameter 'client' is set
     if (client == null) {
       throw new ApiException(400, "Missing the required parameter 'client' when calling testClientModel");
@@ -1173,6 +1551,8 @@ public class FakeApi {
     if (memberVarReadTimeout != null) {
       localVarRequestBuilder.timeout(memberVarReadTimeout);
     }
+    // Add custom headers if provided
+    localVarRequestBuilder = HttpRequestBuilderExtensions.withAdditionalHeaders(localVarRequestBuilder, headers);
     if (memberVarInterceptor != null) {
       memberVarInterceptor.accept(localVarRequestBuilder);
     }
@@ -1199,7 +1579,31 @@ public class FakeApi {
    * @throws ApiException if fails to make API call
    */
   public void testEndpointParameters(@javax.annotation.Nonnull BigDecimal number, @javax.annotation.Nonnull Double _double, @javax.annotation.Nonnull String patternWithoutDelimiter, @javax.annotation.Nonnull byte[] _byte, @javax.annotation.Nullable Integer integer, @javax.annotation.Nullable Integer int32, @javax.annotation.Nullable Long int64, @javax.annotation.Nullable Float _float, @javax.annotation.Nullable String string, @javax.annotation.Nullable File binary, @javax.annotation.Nullable LocalDate date, @javax.annotation.Nullable OffsetDateTime dateTime, @javax.annotation.Nullable String password, @javax.annotation.Nullable String paramCallback) throws ApiException {
-    testEndpointParametersWithHttpInfo(number, _double, patternWithoutDelimiter, _byte, integer, int32, int64, _float, string, binary, date, dateTime, password, paramCallback);
+    testEndpointParameters(number, _double, patternWithoutDelimiter, _byte, integer, int32, int64, _float, string, binary, date, dateTime, password, paramCallback, null);
+  }
+
+  /**
+   * Fake endpoint for testing various parameters 假端點 偽のエンドポイント 가짜 엔드 포인트 
+   * Fake endpoint for testing various parameters 假端點 偽のエンドポイント 가짜 엔드 포인트 
+   * @param number None (required)
+   * @param _double None (required)
+   * @param patternWithoutDelimiter None (required)
+   * @param _byte None (required)
+   * @param integer None (optional)
+   * @param int32 None (optional)
+   * @param int64 None (optional)
+   * @param _float None (optional)
+   * @param string None (optional)
+   * @param binary None (optional)
+   * @param date None (optional)
+   * @param dateTime None (optional, default to 2010-02-01T10:20:10.111110+01:00)
+   * @param password None (optional)
+   * @param paramCallback None (optional)
+   * @param headers Optional headers to include in the request
+   * @throws ApiException if fails to make API call
+   */
+  public void testEndpointParameters(@javax.annotation.Nonnull BigDecimal number, @javax.annotation.Nonnull Double _double, @javax.annotation.Nonnull String patternWithoutDelimiter, @javax.annotation.Nonnull byte[] _byte, @javax.annotation.Nullable Integer integer, @javax.annotation.Nullable Integer int32, @javax.annotation.Nullable Long int64, @javax.annotation.Nullable Float _float, @javax.annotation.Nullable String string, @javax.annotation.Nullable File binary, @javax.annotation.Nullable LocalDate date, @javax.annotation.Nullable OffsetDateTime dateTime, @javax.annotation.Nullable String password, @javax.annotation.Nullable String paramCallback, Map<String, String> headers) throws ApiException {
+    testEndpointParametersWithHttpInfo(number, _double, patternWithoutDelimiter, _byte, integer, int32, int64, _float, string, binary, date, dateTime, password, paramCallback, headers);
   }
 
   /**
@@ -1223,7 +1627,32 @@ public class FakeApi {
    * @throws ApiException if fails to make API call
    */
   public ApiResponse<Void> testEndpointParametersWithHttpInfo(@javax.annotation.Nonnull BigDecimal number, @javax.annotation.Nonnull Double _double, @javax.annotation.Nonnull String patternWithoutDelimiter, @javax.annotation.Nonnull byte[] _byte, @javax.annotation.Nullable Integer integer, @javax.annotation.Nullable Integer int32, @javax.annotation.Nullable Long int64, @javax.annotation.Nullable Float _float, @javax.annotation.Nullable String string, @javax.annotation.Nullable File binary, @javax.annotation.Nullable LocalDate date, @javax.annotation.Nullable OffsetDateTime dateTime, @javax.annotation.Nullable String password, @javax.annotation.Nullable String paramCallback) throws ApiException {
-    HttpRequest.Builder localVarRequestBuilder = testEndpointParametersRequestBuilder(number, _double, patternWithoutDelimiter, _byte, integer, int32, int64, _float, string, binary, date, dateTime, password, paramCallback);
+    return testEndpointParametersWithHttpInfo(number, _double, patternWithoutDelimiter, _byte, integer, int32, int64, _float, string, binary, date, dateTime, password, paramCallback, null);
+  }
+
+  /**
+   * Fake endpoint for testing various parameters 假端點 偽のエンドポイント 가짜 엔드 포인트 
+   * Fake endpoint for testing various parameters 假端點 偽のエンドポイント 가짜 엔드 포인트 
+   * @param number None (required)
+   * @param _double None (required)
+   * @param patternWithoutDelimiter None (required)
+   * @param _byte None (required)
+   * @param integer None (optional)
+   * @param int32 None (optional)
+   * @param int64 None (optional)
+   * @param _float None (optional)
+   * @param string None (optional)
+   * @param binary None (optional)
+   * @param date None (optional)
+   * @param dateTime None (optional, default to 2010-02-01T10:20:10.111110+01:00)
+   * @param password None (optional)
+   * @param paramCallback None (optional)
+   * @param headers Optional headers to include in the request
+   * @return ApiResponse&lt;Void&gt;
+   * @throws ApiException if fails to make API call
+   */
+  public ApiResponse<Void> testEndpointParametersWithHttpInfo(@javax.annotation.Nonnull BigDecimal number, @javax.annotation.Nonnull Double _double, @javax.annotation.Nonnull String patternWithoutDelimiter, @javax.annotation.Nonnull byte[] _byte, @javax.annotation.Nullable Integer integer, @javax.annotation.Nullable Integer int32, @javax.annotation.Nullable Long int64, @javax.annotation.Nullable Float _float, @javax.annotation.Nullable String string, @javax.annotation.Nullable File binary, @javax.annotation.Nullable LocalDate date, @javax.annotation.Nullable OffsetDateTime dateTime, @javax.annotation.Nullable String password, @javax.annotation.Nullable String paramCallback, Map<String, String> headers) throws ApiException {
+    HttpRequest.Builder localVarRequestBuilder = testEndpointParametersRequestBuilder(number, _double, patternWithoutDelimiter, _byte, integer, int32, int64, _float, string, binary, date, dateTime, password, paramCallback, headers);
     try {
       HttpResponse<InputStream> localVarResponse = memberVarHttpClient.send(
           localVarRequestBuilder.build(),
@@ -1231,9 +1660,14 @@ public class FakeApi {
       if (memberVarResponseInterceptor != null) {
         memberVarResponseInterceptor.accept(localVarResponse);
       }
+      InputStream localVarResponseBody = null;
       try {
         if (localVarResponse.statusCode()/ 100 != 2) {
           throw getApiException("testEndpointParameters", localVarResponse);
+        }
+        localVarResponseBody = ApiClient.getResponseBody(localVarResponse);
+        if (localVarResponseBody != null) {
+          localVarResponseBody.readAllBytes();
         }
         return new ApiResponse<>(
             localVarResponse.statusCode(),
@@ -1241,11 +1675,9 @@ public class FakeApi {
             null
         );
       } finally {
-        // Drain the InputStream
-        while (localVarResponse.body().read() != -1) {
-          // Ignore
+        if (localVarResponseBody != null) {
+          localVarResponseBody.close();
         }
-        localVarResponse.body().close();
       }
     } catch (IOException e) {
       throw new ApiException(e);
@@ -1256,7 +1688,7 @@ public class FakeApi {
     }
   }
 
-  private HttpRequest.Builder testEndpointParametersRequestBuilder(@javax.annotation.Nonnull BigDecimal number, @javax.annotation.Nonnull Double _double, @javax.annotation.Nonnull String patternWithoutDelimiter, @javax.annotation.Nonnull byte[] _byte, @javax.annotation.Nullable Integer integer, @javax.annotation.Nullable Integer int32, @javax.annotation.Nullable Long int64, @javax.annotation.Nullable Float _float, @javax.annotation.Nullable String string, @javax.annotation.Nullable File binary, @javax.annotation.Nullable LocalDate date, @javax.annotation.Nullable OffsetDateTime dateTime, @javax.annotation.Nullable String password, @javax.annotation.Nullable String paramCallback) throws ApiException {
+  private HttpRequest.Builder testEndpointParametersRequestBuilder(@javax.annotation.Nonnull BigDecimal number, @javax.annotation.Nonnull Double _double, @javax.annotation.Nonnull String patternWithoutDelimiter, @javax.annotation.Nonnull byte[] _byte, @javax.annotation.Nullable Integer integer, @javax.annotation.Nullable Integer int32, @javax.annotation.Nullable Long int64, @javax.annotation.Nullable Float _float, @javax.annotation.Nullable String string, @javax.annotation.Nullable File binary, @javax.annotation.Nullable LocalDate date, @javax.annotation.Nullable OffsetDateTime dateTime, @javax.annotation.Nullable String password, @javax.annotation.Nullable String paramCallback, Map<String, String> headers) throws ApiException {
     // verify the required parameter 'number' is set
     if (number == null) {
       throw new ApiException(400, "Missing the required parameter 'number' when calling testEndpointParameters");
@@ -1332,13 +1764,16 @@ public class FakeApi {
     } catch (IOException e) {
         throw new RuntimeException(e);
     }
+    byte[] formBytes = formOutputStream.toByteArray();
     localVarRequestBuilder
         .header("Content-Type", entity.getContentType().getValue())
         .method("POST", HttpRequest.BodyPublishers
-            .ofInputStream(() -> new ByteArrayInputStream(formOutputStream.toByteArray())));
+            .ofInputStream(() -> new ByteArrayInputStream(formBytes)));
     if (memberVarReadTimeout != null) {
       localVarRequestBuilder.timeout(memberVarReadTimeout);
     }
+    // Add custom headers if provided
+    localVarRequestBuilder = HttpRequestBuilderExtensions.withAdditionalHeaders(localVarRequestBuilder, headers);
     if (memberVarInterceptor != null) {
       memberVarInterceptor.accept(localVarRequestBuilder);
     }
@@ -1359,7 +1794,25 @@ public class FakeApi {
    * @throws ApiException if fails to make API call
    */
   public void testEnumParameters(@javax.annotation.Nullable List<String> enumHeaderStringArray, @javax.annotation.Nullable String enumHeaderString, @javax.annotation.Nullable List<String> enumQueryStringArray, @javax.annotation.Nullable String enumQueryString, @javax.annotation.Nullable Integer enumQueryInteger, @javax.annotation.Nullable Double enumQueryDouble, @javax.annotation.Nullable List<String> enumFormStringArray, @javax.annotation.Nullable String enumFormString) throws ApiException {
-    testEnumParametersWithHttpInfo(enumHeaderStringArray, enumHeaderString, enumQueryStringArray, enumQueryString, enumQueryInteger, enumQueryDouble, enumFormStringArray, enumFormString);
+    testEnumParameters(enumHeaderStringArray, enumHeaderString, enumQueryStringArray, enumQueryString, enumQueryInteger, enumQueryDouble, enumFormStringArray, enumFormString, null);
+  }
+
+  /**
+   * To test enum parameters
+   * To test enum parameters
+   * @param enumHeaderStringArray Header parameter enum test (string array) (optional)
+   * @param enumHeaderString Header parameter enum test (string) (optional, default to -efg)
+   * @param enumQueryStringArray Query parameter enum test (string array) (optional)
+   * @param enumQueryString Query parameter enum test (string) (optional, default to -efg)
+   * @param enumQueryInteger Query parameter enum test (double) (optional)
+   * @param enumQueryDouble Query parameter enum test (double) (optional)
+   * @param enumFormStringArray Form parameter enum test (string array) (optional)
+   * @param enumFormString Form parameter enum test (string) (optional, default to -efg)
+   * @param headers Optional headers to include in the request
+   * @throws ApiException if fails to make API call
+   */
+  public void testEnumParameters(@javax.annotation.Nullable List<String> enumHeaderStringArray, @javax.annotation.Nullable String enumHeaderString, @javax.annotation.Nullable List<String> enumQueryStringArray, @javax.annotation.Nullable String enumQueryString, @javax.annotation.Nullable Integer enumQueryInteger, @javax.annotation.Nullable Double enumQueryDouble, @javax.annotation.Nullable List<String> enumFormStringArray, @javax.annotation.Nullable String enumFormString, Map<String, String> headers) throws ApiException {
+    testEnumParametersWithHttpInfo(enumHeaderStringArray, enumHeaderString, enumQueryStringArray, enumQueryString, enumQueryInteger, enumQueryDouble, enumFormStringArray, enumFormString, headers);
   }
 
   /**
@@ -1377,7 +1830,26 @@ public class FakeApi {
    * @throws ApiException if fails to make API call
    */
   public ApiResponse<Void> testEnumParametersWithHttpInfo(@javax.annotation.Nullable List<String> enumHeaderStringArray, @javax.annotation.Nullable String enumHeaderString, @javax.annotation.Nullable List<String> enumQueryStringArray, @javax.annotation.Nullable String enumQueryString, @javax.annotation.Nullable Integer enumQueryInteger, @javax.annotation.Nullable Double enumQueryDouble, @javax.annotation.Nullable List<String> enumFormStringArray, @javax.annotation.Nullable String enumFormString) throws ApiException {
-    HttpRequest.Builder localVarRequestBuilder = testEnumParametersRequestBuilder(enumHeaderStringArray, enumHeaderString, enumQueryStringArray, enumQueryString, enumQueryInteger, enumQueryDouble, enumFormStringArray, enumFormString);
+    return testEnumParametersWithHttpInfo(enumHeaderStringArray, enumHeaderString, enumQueryStringArray, enumQueryString, enumQueryInteger, enumQueryDouble, enumFormStringArray, enumFormString, null);
+  }
+
+  /**
+   * To test enum parameters
+   * To test enum parameters
+   * @param enumHeaderStringArray Header parameter enum test (string array) (optional)
+   * @param enumHeaderString Header parameter enum test (string) (optional, default to -efg)
+   * @param enumQueryStringArray Query parameter enum test (string array) (optional)
+   * @param enumQueryString Query parameter enum test (string) (optional, default to -efg)
+   * @param enumQueryInteger Query parameter enum test (double) (optional)
+   * @param enumQueryDouble Query parameter enum test (double) (optional)
+   * @param enumFormStringArray Form parameter enum test (string array) (optional)
+   * @param enumFormString Form parameter enum test (string) (optional, default to -efg)
+   * @param headers Optional headers to include in the request
+   * @return ApiResponse&lt;Void&gt;
+   * @throws ApiException if fails to make API call
+   */
+  public ApiResponse<Void> testEnumParametersWithHttpInfo(@javax.annotation.Nullable List<String> enumHeaderStringArray, @javax.annotation.Nullable String enumHeaderString, @javax.annotation.Nullable List<String> enumQueryStringArray, @javax.annotation.Nullable String enumQueryString, @javax.annotation.Nullable Integer enumQueryInteger, @javax.annotation.Nullable Double enumQueryDouble, @javax.annotation.Nullable List<String> enumFormStringArray, @javax.annotation.Nullable String enumFormString, Map<String, String> headers) throws ApiException {
+    HttpRequest.Builder localVarRequestBuilder = testEnumParametersRequestBuilder(enumHeaderStringArray, enumHeaderString, enumQueryStringArray, enumQueryString, enumQueryInteger, enumQueryDouble, enumFormStringArray, enumFormString, headers);
     try {
       HttpResponse<InputStream> localVarResponse = memberVarHttpClient.send(
           localVarRequestBuilder.build(),
@@ -1385,9 +1857,14 @@ public class FakeApi {
       if (memberVarResponseInterceptor != null) {
         memberVarResponseInterceptor.accept(localVarResponse);
       }
+      InputStream localVarResponseBody = null;
       try {
         if (localVarResponse.statusCode()/ 100 != 2) {
           throw getApiException("testEnumParameters", localVarResponse);
+        }
+        localVarResponseBody = ApiClient.getResponseBody(localVarResponse);
+        if (localVarResponseBody != null) {
+          localVarResponseBody.readAllBytes();
         }
         return new ApiResponse<>(
             localVarResponse.statusCode(),
@@ -1395,11 +1872,9 @@ public class FakeApi {
             null
         );
       } finally {
-        // Drain the InputStream
-        while (localVarResponse.body().read() != -1) {
-          // Ignore
+        if (localVarResponseBody != null) {
+          localVarResponseBody.close();
         }
-        localVarResponse.body().close();
       }
     } catch (IOException e) {
       throw new ApiException(e);
@@ -1410,7 +1885,7 @@ public class FakeApi {
     }
   }
 
-  private HttpRequest.Builder testEnumParametersRequestBuilder(@javax.annotation.Nullable List<String> enumHeaderStringArray, @javax.annotation.Nullable String enumHeaderString, @javax.annotation.Nullable List<String> enumQueryStringArray, @javax.annotation.Nullable String enumQueryString, @javax.annotation.Nullable Integer enumQueryInteger, @javax.annotation.Nullable Double enumQueryDouble, @javax.annotation.Nullable List<String> enumFormStringArray, @javax.annotation.Nullable String enumFormString) throws ApiException {
+  private HttpRequest.Builder testEnumParametersRequestBuilder(@javax.annotation.Nullable List<String> enumHeaderStringArray, @javax.annotation.Nullable String enumHeaderString, @javax.annotation.Nullable List<String> enumQueryStringArray, @javax.annotation.Nullable String enumQueryString, @javax.annotation.Nullable Integer enumQueryInteger, @javax.annotation.Nullable Double enumQueryDouble, @javax.annotation.Nullable List<String> enumFormStringArray, @javax.annotation.Nullable String enumFormString, Map<String, String> headers) throws ApiException {
 
     HttpRequest.Builder localVarRequestBuilder = HttpRequest.newBuilder();
 
@@ -1463,13 +1938,16 @@ public class FakeApi {
     } catch (IOException e) {
         throw new RuntimeException(e);
     }
+    byte[] formBytes = formOutputStream.toByteArray();
     localVarRequestBuilder
         .header("Content-Type", entity.getContentType().getValue())
         .method("GET", HttpRequest.BodyPublishers
-            .ofInputStream(() -> new ByteArrayInputStream(formOutputStream.toByteArray())));
+            .ofInputStream(() -> new ByteArrayInputStream(formBytes)));
     if (memberVarReadTimeout != null) {
       localVarRequestBuilder.timeout(memberVarReadTimeout);
     }
+    // Add custom headers if provided
+    localVarRequestBuilder = HttpRequestBuilderExtensions.withAdditionalHeaders(localVarRequestBuilder, headers);
     if (memberVarInterceptor != null) {
       memberVarInterceptor.accept(localVarRequestBuilder);
     }
@@ -1483,6 +1961,17 @@ public class FakeApi {
    * @throws ApiException if fails to make API call
    */
   public void testGroupParameters(APITestGroupParametersRequest apiRequest) throws ApiException {
+    testGroupParameters(apiRequest, null);
+  }
+
+  /**
+   * Fake endpoint to test group parameters (optional)
+   * Fake endpoint to test group parameters (optional)
+   * @param apiRequest {@link APITestGroupParametersRequest}
+   * @param headers Optional headers to include in the request
+   * @throws ApiException if fails to make API call
+   */
+  public void testGroupParameters(APITestGroupParametersRequest apiRequest, Map<String, String> headers) throws ApiException {
     @javax.annotation.Nonnull
     Integer requiredStringGroup = apiRequest.requiredStringGroup();
     @javax.annotation.Nonnull
@@ -1495,7 +1984,7 @@ public class FakeApi {
     Boolean booleanGroup = apiRequest.booleanGroup();
     @javax.annotation.Nullable
     Long int64Group = apiRequest.int64Group();
-    testGroupParameters(requiredStringGroup, requiredBooleanGroup, requiredInt64Group, stringGroup, booleanGroup, int64Group);
+    testGroupParameters(requiredStringGroup, requiredBooleanGroup, requiredInt64Group, stringGroup, booleanGroup, int64Group, headers);
   }
 
   /**
@@ -1506,13 +1995,25 @@ public class FakeApi {
    * @throws ApiException if fails to make API call
    */
   public ApiResponse<Void> testGroupParametersWithHttpInfo(APITestGroupParametersRequest apiRequest) throws ApiException {
+    return testGroupParametersWithHttpInfo(apiRequest, null);
+  }
+
+  /**
+   * Fake endpoint to test group parameters (optional)
+   * Fake endpoint to test group parameters (optional)
+   * @param apiRequest {@link APITestGroupParametersRequest}
+   * @param headers Optional headers to include in the request
+   * @return ApiResponse&lt;Void&gt;
+   * @throws ApiException if fails to make API call
+   */
+  public ApiResponse<Void> testGroupParametersWithHttpInfo(APITestGroupParametersRequest apiRequest, Map<String, String> headers) throws ApiException {
     Integer requiredStringGroup = apiRequest.requiredStringGroup();
     Boolean requiredBooleanGroup = apiRequest.requiredBooleanGroup();
     Long requiredInt64Group = apiRequest.requiredInt64Group();
     Integer stringGroup = apiRequest.stringGroup();
     Boolean booleanGroup = apiRequest.booleanGroup();
     Long int64Group = apiRequest.int64Group();
-    return testGroupParametersWithHttpInfo(requiredStringGroup, requiredBooleanGroup, requiredInt64Group, stringGroup, booleanGroup, int64Group);
+    return testGroupParametersWithHttpInfo(requiredStringGroup, requiredBooleanGroup, requiredInt64Group, stringGroup, booleanGroup, int64Group, headers);
   }
 
   /**
@@ -1527,7 +2028,23 @@ public class FakeApi {
    * @throws ApiException if fails to make API call
    */
   public void testGroupParameters(@javax.annotation.Nonnull Integer requiredStringGroup, @javax.annotation.Nonnull Boolean requiredBooleanGroup, @javax.annotation.Nonnull Long requiredInt64Group, @javax.annotation.Nullable Integer stringGroup, @javax.annotation.Nullable Boolean booleanGroup, @javax.annotation.Nullable Long int64Group) throws ApiException {
-    testGroupParametersWithHttpInfo(requiredStringGroup, requiredBooleanGroup, requiredInt64Group, stringGroup, booleanGroup, int64Group);
+    testGroupParameters(requiredStringGroup, requiredBooleanGroup, requiredInt64Group, stringGroup, booleanGroup, int64Group, null);
+  }
+
+  /**
+   * Fake endpoint to test group parameters (optional)
+   * Fake endpoint to test group parameters (optional)
+   * @param requiredStringGroup Required String in group parameters (required)
+   * @param requiredBooleanGroup Required Boolean in group parameters (required)
+   * @param requiredInt64Group Required Integer in group parameters (required)
+   * @param stringGroup String in group parameters (optional)
+   * @param booleanGroup Boolean in group parameters (optional)
+   * @param int64Group Integer in group parameters (optional)
+   * @param headers Optional headers to include in the request
+   * @throws ApiException if fails to make API call
+   */
+  public void testGroupParameters(@javax.annotation.Nonnull Integer requiredStringGroup, @javax.annotation.Nonnull Boolean requiredBooleanGroup, @javax.annotation.Nonnull Long requiredInt64Group, @javax.annotation.Nullable Integer stringGroup, @javax.annotation.Nullable Boolean booleanGroup, @javax.annotation.Nullable Long int64Group, Map<String, String> headers) throws ApiException {
+    testGroupParametersWithHttpInfo(requiredStringGroup, requiredBooleanGroup, requiredInt64Group, stringGroup, booleanGroup, int64Group, headers);
   }
 
   /**
@@ -1543,7 +2060,24 @@ public class FakeApi {
    * @throws ApiException if fails to make API call
    */
   public ApiResponse<Void> testGroupParametersWithHttpInfo(@javax.annotation.Nonnull Integer requiredStringGroup, @javax.annotation.Nonnull Boolean requiredBooleanGroup, @javax.annotation.Nonnull Long requiredInt64Group, @javax.annotation.Nullable Integer stringGroup, @javax.annotation.Nullable Boolean booleanGroup, @javax.annotation.Nullable Long int64Group) throws ApiException {
-    HttpRequest.Builder localVarRequestBuilder = testGroupParametersRequestBuilder(requiredStringGroup, requiredBooleanGroup, requiredInt64Group, stringGroup, booleanGroup, int64Group);
+    return testGroupParametersWithHttpInfo(requiredStringGroup, requiredBooleanGroup, requiredInt64Group, stringGroup, booleanGroup, int64Group, null);
+  }
+
+  /**
+   * Fake endpoint to test group parameters (optional)
+   * Fake endpoint to test group parameters (optional)
+   * @param requiredStringGroup Required String in group parameters (required)
+   * @param requiredBooleanGroup Required Boolean in group parameters (required)
+   * @param requiredInt64Group Required Integer in group parameters (required)
+   * @param stringGroup String in group parameters (optional)
+   * @param booleanGroup Boolean in group parameters (optional)
+   * @param int64Group Integer in group parameters (optional)
+   * @param headers Optional headers to include in the request
+   * @return ApiResponse&lt;Void&gt;
+   * @throws ApiException if fails to make API call
+   */
+  public ApiResponse<Void> testGroupParametersWithHttpInfo(@javax.annotation.Nonnull Integer requiredStringGroup, @javax.annotation.Nonnull Boolean requiredBooleanGroup, @javax.annotation.Nonnull Long requiredInt64Group, @javax.annotation.Nullable Integer stringGroup, @javax.annotation.Nullable Boolean booleanGroup, @javax.annotation.Nullable Long int64Group, Map<String, String> headers) throws ApiException {
+    HttpRequest.Builder localVarRequestBuilder = testGroupParametersRequestBuilder(requiredStringGroup, requiredBooleanGroup, requiredInt64Group, stringGroup, booleanGroup, int64Group, headers);
     try {
       HttpResponse<InputStream> localVarResponse = memberVarHttpClient.send(
           localVarRequestBuilder.build(),
@@ -1551,9 +2085,14 @@ public class FakeApi {
       if (memberVarResponseInterceptor != null) {
         memberVarResponseInterceptor.accept(localVarResponse);
       }
+      InputStream localVarResponseBody = null;
       try {
         if (localVarResponse.statusCode()/ 100 != 2) {
           throw getApiException("testGroupParameters", localVarResponse);
+        }
+        localVarResponseBody = ApiClient.getResponseBody(localVarResponse);
+        if (localVarResponseBody != null) {
+          localVarResponseBody.readAllBytes();
         }
         return new ApiResponse<>(
             localVarResponse.statusCode(),
@@ -1561,11 +2100,9 @@ public class FakeApi {
             null
         );
       } finally {
-        // Drain the InputStream
-        while (localVarResponse.body().read() != -1) {
-          // Ignore
+        if (localVarResponseBody != null) {
+          localVarResponseBody.close();
         }
-        localVarResponse.body().close();
       }
     } catch (IOException e) {
       throw new ApiException(e);
@@ -1576,7 +2113,7 @@ public class FakeApi {
     }
   }
 
-  private HttpRequest.Builder testGroupParametersRequestBuilder(@javax.annotation.Nonnull Integer requiredStringGroup, @javax.annotation.Nonnull Boolean requiredBooleanGroup, @javax.annotation.Nonnull Long requiredInt64Group, @javax.annotation.Nullable Integer stringGroup, @javax.annotation.Nullable Boolean booleanGroup, @javax.annotation.Nullable Long int64Group) throws ApiException {
+  private HttpRequest.Builder testGroupParametersRequestBuilder(@javax.annotation.Nonnull Integer requiredStringGroup, @javax.annotation.Nonnull Boolean requiredBooleanGroup, @javax.annotation.Nonnull Long requiredInt64Group, @javax.annotation.Nullable Integer stringGroup, @javax.annotation.Nullable Boolean booleanGroup, @javax.annotation.Nullable Long int64Group, Map<String, String> headers) throws ApiException {
     // verify the required parameter 'requiredStringGroup' is set
     if (requiredStringGroup == null) {
       throw new ApiException(400, "Missing the required parameter 'requiredStringGroup' when calling testGroupParameters");
@@ -1629,6 +2166,8 @@ public class FakeApi {
     if (memberVarReadTimeout != null) {
       localVarRequestBuilder.timeout(memberVarReadTimeout);
     }
+    // Add custom headers if provided
+    localVarRequestBuilder = HttpRequestBuilderExtensions.withAdditionalHeaders(localVarRequestBuilder, headers);
     if (memberVarInterceptor != null) {
       memberVarInterceptor.accept(localVarRequestBuilder);
     }
@@ -1731,7 +2270,18 @@ public class FakeApi {
    * @throws ApiException if fails to make API call
    */
   public void testInlineAdditionalProperties(@javax.annotation.Nonnull Map<String, String> requestBody) throws ApiException {
-    testInlineAdditionalPropertiesWithHttpInfo(requestBody);
+    testInlineAdditionalProperties(requestBody, null);
+  }
+
+  /**
+   * test inline additionalProperties
+   * 
+   * @param requestBody request body (required)
+   * @param headers Optional headers to include in the request
+   * @throws ApiException if fails to make API call
+   */
+  public void testInlineAdditionalProperties(@javax.annotation.Nonnull Map<String, String> requestBody, Map<String, String> headers) throws ApiException {
+    testInlineAdditionalPropertiesWithHttpInfo(requestBody, headers);
   }
 
   /**
@@ -1742,7 +2292,19 @@ public class FakeApi {
    * @throws ApiException if fails to make API call
    */
   public ApiResponse<Void> testInlineAdditionalPropertiesWithHttpInfo(@javax.annotation.Nonnull Map<String, String> requestBody) throws ApiException {
-    HttpRequest.Builder localVarRequestBuilder = testInlineAdditionalPropertiesRequestBuilder(requestBody);
+    return testInlineAdditionalPropertiesWithHttpInfo(requestBody, null);
+  }
+
+  /**
+   * test inline additionalProperties
+   * 
+   * @param requestBody request body (required)
+   * @param headers Optional headers to include in the request
+   * @return ApiResponse&lt;Void&gt;
+   * @throws ApiException if fails to make API call
+   */
+  public ApiResponse<Void> testInlineAdditionalPropertiesWithHttpInfo(@javax.annotation.Nonnull Map<String, String> requestBody, Map<String, String> headers) throws ApiException {
+    HttpRequest.Builder localVarRequestBuilder = testInlineAdditionalPropertiesRequestBuilder(requestBody, headers);
     try {
       HttpResponse<InputStream> localVarResponse = memberVarHttpClient.send(
           localVarRequestBuilder.build(),
@@ -1750,9 +2312,14 @@ public class FakeApi {
       if (memberVarResponseInterceptor != null) {
         memberVarResponseInterceptor.accept(localVarResponse);
       }
+      InputStream localVarResponseBody = null;
       try {
         if (localVarResponse.statusCode()/ 100 != 2) {
           throw getApiException("testInlineAdditionalProperties", localVarResponse);
+        }
+        localVarResponseBody = ApiClient.getResponseBody(localVarResponse);
+        if (localVarResponseBody != null) {
+          localVarResponseBody.readAllBytes();
         }
         return new ApiResponse<>(
             localVarResponse.statusCode(),
@@ -1760,11 +2327,9 @@ public class FakeApi {
             null
         );
       } finally {
-        // Drain the InputStream
-        while (localVarResponse.body().read() != -1) {
-          // Ignore
+        if (localVarResponseBody != null) {
+          localVarResponseBody.close();
         }
-        localVarResponse.body().close();
       }
     } catch (IOException e) {
       throw new ApiException(e);
@@ -1775,7 +2340,7 @@ public class FakeApi {
     }
   }
 
-  private HttpRequest.Builder testInlineAdditionalPropertiesRequestBuilder(@javax.annotation.Nonnull Map<String, String> requestBody) throws ApiException {
+  private HttpRequest.Builder testInlineAdditionalPropertiesRequestBuilder(@javax.annotation.Nonnull Map<String, String> requestBody, Map<String, String> headers) throws ApiException {
     // verify the required parameter 'requestBody' is set
     if (requestBody == null) {
       throw new ApiException(400, "Missing the required parameter 'requestBody' when calling testInlineAdditionalProperties");
@@ -1799,6 +2364,8 @@ public class FakeApi {
     if (memberVarReadTimeout != null) {
       localVarRequestBuilder.timeout(memberVarReadTimeout);
     }
+    // Add custom headers if provided
+    localVarRequestBuilder = HttpRequestBuilderExtensions.withAdditionalHeaders(localVarRequestBuilder, headers);
     if (memberVarInterceptor != null) {
       memberVarInterceptor.accept(localVarRequestBuilder);
     }
@@ -1812,7 +2379,18 @@ public class FakeApi {
    * @throws ApiException if fails to make API call
    */
   public void testInlineFreeformAdditionalProperties(@javax.annotation.Nonnull TestInlineFreeformAdditionalPropertiesRequest testInlineFreeformAdditionalPropertiesRequest) throws ApiException {
-    testInlineFreeformAdditionalPropertiesWithHttpInfo(testInlineFreeformAdditionalPropertiesRequest);
+    testInlineFreeformAdditionalProperties(testInlineFreeformAdditionalPropertiesRequest, null);
+  }
+
+  /**
+   * test inline free-form additionalProperties
+   * 
+   * @param testInlineFreeformAdditionalPropertiesRequest request body (required)
+   * @param headers Optional headers to include in the request
+   * @throws ApiException if fails to make API call
+   */
+  public void testInlineFreeformAdditionalProperties(@javax.annotation.Nonnull TestInlineFreeformAdditionalPropertiesRequest testInlineFreeformAdditionalPropertiesRequest, Map<String, String> headers) throws ApiException {
+    testInlineFreeformAdditionalPropertiesWithHttpInfo(testInlineFreeformAdditionalPropertiesRequest, headers);
   }
 
   /**
@@ -1823,7 +2401,19 @@ public class FakeApi {
    * @throws ApiException if fails to make API call
    */
   public ApiResponse<Void> testInlineFreeformAdditionalPropertiesWithHttpInfo(@javax.annotation.Nonnull TestInlineFreeformAdditionalPropertiesRequest testInlineFreeformAdditionalPropertiesRequest) throws ApiException {
-    HttpRequest.Builder localVarRequestBuilder = testInlineFreeformAdditionalPropertiesRequestBuilder(testInlineFreeformAdditionalPropertiesRequest);
+    return testInlineFreeformAdditionalPropertiesWithHttpInfo(testInlineFreeformAdditionalPropertiesRequest, null);
+  }
+
+  /**
+   * test inline free-form additionalProperties
+   * 
+   * @param testInlineFreeformAdditionalPropertiesRequest request body (required)
+   * @param headers Optional headers to include in the request
+   * @return ApiResponse&lt;Void&gt;
+   * @throws ApiException if fails to make API call
+   */
+  public ApiResponse<Void> testInlineFreeformAdditionalPropertiesWithHttpInfo(@javax.annotation.Nonnull TestInlineFreeformAdditionalPropertiesRequest testInlineFreeformAdditionalPropertiesRequest, Map<String, String> headers) throws ApiException {
+    HttpRequest.Builder localVarRequestBuilder = testInlineFreeformAdditionalPropertiesRequestBuilder(testInlineFreeformAdditionalPropertiesRequest, headers);
     try {
       HttpResponse<InputStream> localVarResponse = memberVarHttpClient.send(
           localVarRequestBuilder.build(),
@@ -1831,9 +2421,14 @@ public class FakeApi {
       if (memberVarResponseInterceptor != null) {
         memberVarResponseInterceptor.accept(localVarResponse);
       }
+      InputStream localVarResponseBody = null;
       try {
         if (localVarResponse.statusCode()/ 100 != 2) {
           throw getApiException("testInlineFreeformAdditionalProperties", localVarResponse);
+        }
+        localVarResponseBody = ApiClient.getResponseBody(localVarResponse);
+        if (localVarResponseBody != null) {
+          localVarResponseBody.readAllBytes();
         }
         return new ApiResponse<>(
             localVarResponse.statusCode(),
@@ -1841,11 +2436,9 @@ public class FakeApi {
             null
         );
       } finally {
-        // Drain the InputStream
-        while (localVarResponse.body().read() != -1) {
-          // Ignore
+        if (localVarResponseBody != null) {
+          localVarResponseBody.close();
         }
-        localVarResponse.body().close();
       }
     } catch (IOException e) {
       throw new ApiException(e);
@@ -1856,7 +2449,7 @@ public class FakeApi {
     }
   }
 
-  private HttpRequest.Builder testInlineFreeformAdditionalPropertiesRequestBuilder(@javax.annotation.Nonnull TestInlineFreeformAdditionalPropertiesRequest testInlineFreeformAdditionalPropertiesRequest) throws ApiException {
+  private HttpRequest.Builder testInlineFreeformAdditionalPropertiesRequestBuilder(@javax.annotation.Nonnull TestInlineFreeformAdditionalPropertiesRequest testInlineFreeformAdditionalPropertiesRequest, Map<String, String> headers) throws ApiException {
     // verify the required parameter 'testInlineFreeformAdditionalPropertiesRequest' is set
     if (testInlineFreeformAdditionalPropertiesRequest == null) {
       throw new ApiException(400, "Missing the required parameter 'testInlineFreeformAdditionalPropertiesRequest' when calling testInlineFreeformAdditionalProperties");
@@ -1880,6 +2473,8 @@ public class FakeApi {
     if (memberVarReadTimeout != null) {
       localVarRequestBuilder.timeout(memberVarReadTimeout);
     }
+    // Add custom headers if provided
+    localVarRequestBuilder = HttpRequestBuilderExtensions.withAdditionalHeaders(localVarRequestBuilder, headers);
     if (memberVarInterceptor != null) {
       memberVarInterceptor.accept(localVarRequestBuilder);
     }
@@ -1894,7 +2489,19 @@ public class FakeApi {
    * @throws ApiException if fails to make API call
    */
   public void testJsonFormData(@javax.annotation.Nonnull String param, @javax.annotation.Nonnull String param2) throws ApiException {
-    testJsonFormDataWithHttpInfo(param, param2);
+    testJsonFormData(param, param2, null);
+  }
+
+  /**
+   * test json serialization of form data
+   * 
+   * @param param field1 (required)
+   * @param param2 field2 (required)
+   * @param headers Optional headers to include in the request
+   * @throws ApiException if fails to make API call
+   */
+  public void testJsonFormData(@javax.annotation.Nonnull String param, @javax.annotation.Nonnull String param2, Map<String, String> headers) throws ApiException {
+    testJsonFormDataWithHttpInfo(param, param2, headers);
   }
 
   /**
@@ -1906,7 +2513,20 @@ public class FakeApi {
    * @throws ApiException if fails to make API call
    */
   public ApiResponse<Void> testJsonFormDataWithHttpInfo(@javax.annotation.Nonnull String param, @javax.annotation.Nonnull String param2) throws ApiException {
-    HttpRequest.Builder localVarRequestBuilder = testJsonFormDataRequestBuilder(param, param2);
+    return testJsonFormDataWithHttpInfo(param, param2, null);
+  }
+
+  /**
+   * test json serialization of form data
+   * 
+   * @param param field1 (required)
+   * @param param2 field2 (required)
+   * @param headers Optional headers to include in the request
+   * @return ApiResponse&lt;Void&gt;
+   * @throws ApiException if fails to make API call
+   */
+  public ApiResponse<Void> testJsonFormDataWithHttpInfo(@javax.annotation.Nonnull String param, @javax.annotation.Nonnull String param2, Map<String, String> headers) throws ApiException {
+    HttpRequest.Builder localVarRequestBuilder = testJsonFormDataRequestBuilder(param, param2, headers);
     try {
       HttpResponse<InputStream> localVarResponse = memberVarHttpClient.send(
           localVarRequestBuilder.build(),
@@ -1914,9 +2534,14 @@ public class FakeApi {
       if (memberVarResponseInterceptor != null) {
         memberVarResponseInterceptor.accept(localVarResponse);
       }
+      InputStream localVarResponseBody = null;
       try {
         if (localVarResponse.statusCode()/ 100 != 2) {
           throw getApiException("testJsonFormData", localVarResponse);
+        }
+        localVarResponseBody = ApiClient.getResponseBody(localVarResponse);
+        if (localVarResponseBody != null) {
+          localVarResponseBody.readAllBytes();
         }
         return new ApiResponse<>(
             localVarResponse.statusCode(),
@@ -1924,11 +2549,9 @@ public class FakeApi {
             null
         );
       } finally {
-        // Drain the InputStream
-        while (localVarResponse.body().read() != -1) {
-          // Ignore
+        if (localVarResponseBody != null) {
+          localVarResponseBody.close();
         }
-        localVarResponse.body().close();
       }
     } catch (IOException e) {
       throw new ApiException(e);
@@ -1939,7 +2562,7 @@ public class FakeApi {
     }
   }
 
-  private HttpRequest.Builder testJsonFormDataRequestBuilder(@javax.annotation.Nonnull String param, @javax.annotation.Nonnull String param2) throws ApiException {
+  private HttpRequest.Builder testJsonFormDataRequestBuilder(@javax.annotation.Nonnull String param, @javax.annotation.Nonnull String param2, Map<String, String> headers) throws ApiException {
     // verify the required parameter 'param' is set
     if (param == null) {
       throw new ApiException(400, "Missing the required parameter 'param' when calling testJsonFormData");
@@ -1971,13 +2594,16 @@ public class FakeApi {
     } catch (IOException e) {
         throw new RuntimeException(e);
     }
+    byte[] formBytes = formOutputStream.toByteArray();
     localVarRequestBuilder
         .header("Content-Type", entity.getContentType().getValue())
         .method("GET", HttpRequest.BodyPublishers
-            .ofInputStream(() -> new ByteArrayInputStream(formOutputStream.toByteArray())));
+            .ofInputStream(() -> new ByteArrayInputStream(formBytes)));
     if (memberVarReadTimeout != null) {
       localVarRequestBuilder.timeout(memberVarReadTimeout);
     }
+    // Add custom headers if provided
+    localVarRequestBuilder = HttpRequestBuilderExtensions.withAdditionalHeaders(localVarRequestBuilder, headers);
     if (memberVarInterceptor != null) {
       memberVarInterceptor.accept(localVarRequestBuilder);
     }
@@ -1995,7 +2621,22 @@ public class FakeApi {
    * @throws ApiException if fails to make API call
    */
   public void testQueryParameterCollectionFormat(@javax.annotation.Nonnull List<String> pipe, @javax.annotation.Nonnull List<String> ioutil, @javax.annotation.Nonnull List<String> http, @javax.annotation.Nonnull List<String> url, @javax.annotation.Nonnull List<String> context) throws ApiException {
-    testQueryParameterCollectionFormatWithHttpInfo(pipe, ioutil, http, url, context);
+    testQueryParameterCollectionFormat(pipe, ioutil, http, url, context, null);
+  }
+
+  /**
+   * 
+   * To test the collection format in query parameters
+   * @param pipe  (required)
+   * @param ioutil  (required)
+   * @param http  (required)
+   * @param url  (required)
+   * @param context  (required)
+   * @param headers Optional headers to include in the request
+   * @throws ApiException if fails to make API call
+   */
+  public void testQueryParameterCollectionFormat(@javax.annotation.Nonnull List<String> pipe, @javax.annotation.Nonnull List<String> ioutil, @javax.annotation.Nonnull List<String> http, @javax.annotation.Nonnull List<String> url, @javax.annotation.Nonnull List<String> context, Map<String, String> headers) throws ApiException {
+    testQueryParameterCollectionFormatWithHttpInfo(pipe, ioutil, http, url, context, headers);
   }
 
   /**
@@ -2010,7 +2651,23 @@ public class FakeApi {
    * @throws ApiException if fails to make API call
    */
   public ApiResponse<Void> testQueryParameterCollectionFormatWithHttpInfo(@javax.annotation.Nonnull List<String> pipe, @javax.annotation.Nonnull List<String> ioutil, @javax.annotation.Nonnull List<String> http, @javax.annotation.Nonnull List<String> url, @javax.annotation.Nonnull List<String> context) throws ApiException {
-    HttpRequest.Builder localVarRequestBuilder = testQueryParameterCollectionFormatRequestBuilder(pipe, ioutil, http, url, context);
+    return testQueryParameterCollectionFormatWithHttpInfo(pipe, ioutil, http, url, context, null);
+  }
+
+  /**
+   * 
+   * To test the collection format in query parameters
+   * @param pipe  (required)
+   * @param ioutil  (required)
+   * @param http  (required)
+   * @param url  (required)
+   * @param context  (required)
+   * @param headers Optional headers to include in the request
+   * @return ApiResponse&lt;Void&gt;
+   * @throws ApiException if fails to make API call
+   */
+  public ApiResponse<Void> testQueryParameterCollectionFormatWithHttpInfo(@javax.annotation.Nonnull List<String> pipe, @javax.annotation.Nonnull List<String> ioutil, @javax.annotation.Nonnull List<String> http, @javax.annotation.Nonnull List<String> url, @javax.annotation.Nonnull List<String> context, Map<String, String> headers) throws ApiException {
+    HttpRequest.Builder localVarRequestBuilder = testQueryParameterCollectionFormatRequestBuilder(pipe, ioutil, http, url, context, headers);
     try {
       HttpResponse<InputStream> localVarResponse = memberVarHttpClient.send(
           localVarRequestBuilder.build(),
@@ -2018,9 +2675,14 @@ public class FakeApi {
       if (memberVarResponseInterceptor != null) {
         memberVarResponseInterceptor.accept(localVarResponse);
       }
+      InputStream localVarResponseBody = null;
       try {
         if (localVarResponse.statusCode()/ 100 != 2) {
           throw getApiException("testQueryParameterCollectionFormat", localVarResponse);
+        }
+        localVarResponseBody = ApiClient.getResponseBody(localVarResponse);
+        if (localVarResponseBody != null) {
+          localVarResponseBody.readAllBytes();
         }
         return new ApiResponse<>(
             localVarResponse.statusCode(),
@@ -2028,11 +2690,9 @@ public class FakeApi {
             null
         );
       } finally {
-        // Drain the InputStream
-        while (localVarResponse.body().read() != -1) {
-          // Ignore
+        if (localVarResponseBody != null) {
+          localVarResponseBody.close();
         }
-        localVarResponse.body().close();
       }
     } catch (IOException e) {
       throw new ApiException(e);
@@ -2043,7 +2703,7 @@ public class FakeApi {
     }
   }
 
-  private HttpRequest.Builder testQueryParameterCollectionFormatRequestBuilder(@javax.annotation.Nonnull List<String> pipe, @javax.annotation.Nonnull List<String> ioutil, @javax.annotation.Nonnull List<String> http, @javax.annotation.Nonnull List<String> url, @javax.annotation.Nonnull List<String> context) throws ApiException {
+  private HttpRequest.Builder testQueryParameterCollectionFormatRequestBuilder(@javax.annotation.Nonnull List<String> pipe, @javax.annotation.Nonnull List<String> ioutil, @javax.annotation.Nonnull List<String> http, @javax.annotation.Nonnull List<String> url, @javax.annotation.Nonnull List<String> context, Map<String, String> headers) throws ApiException {
     // verify the required parameter 'pipe' is set
     if (pipe == null) {
       throw new ApiException(400, "Missing the required parameter 'pipe' when calling testQueryParameterCollectionFormat");
@@ -2100,6 +2760,8 @@ public class FakeApi {
     if (memberVarReadTimeout != null) {
       localVarRequestBuilder.timeout(memberVarReadTimeout);
     }
+    // Add custom headers if provided
+    localVarRequestBuilder = HttpRequestBuilderExtensions.withAdditionalHeaders(localVarRequestBuilder, headers);
     if (memberVarInterceptor != null) {
       memberVarInterceptor.accept(localVarRequestBuilder);
     }
@@ -2113,7 +2775,18 @@ public class FakeApi {
    * @throws ApiException if fails to make API call
    */
   public void testStringMapReference(@javax.annotation.Nonnull Map<String, String> requestBody) throws ApiException {
-    testStringMapReferenceWithHttpInfo(requestBody);
+    testStringMapReference(requestBody, null);
+  }
+
+  /**
+   * test referenced string map
+   * 
+   * @param requestBody request body (required)
+   * @param headers Optional headers to include in the request
+   * @throws ApiException if fails to make API call
+   */
+  public void testStringMapReference(@javax.annotation.Nonnull Map<String, String> requestBody, Map<String, String> headers) throws ApiException {
+    testStringMapReferenceWithHttpInfo(requestBody, headers);
   }
 
   /**
@@ -2124,7 +2797,19 @@ public class FakeApi {
    * @throws ApiException if fails to make API call
    */
   public ApiResponse<Void> testStringMapReferenceWithHttpInfo(@javax.annotation.Nonnull Map<String, String> requestBody) throws ApiException {
-    HttpRequest.Builder localVarRequestBuilder = testStringMapReferenceRequestBuilder(requestBody);
+    return testStringMapReferenceWithHttpInfo(requestBody, null);
+  }
+
+  /**
+   * test referenced string map
+   * 
+   * @param requestBody request body (required)
+   * @param headers Optional headers to include in the request
+   * @return ApiResponse&lt;Void&gt;
+   * @throws ApiException if fails to make API call
+   */
+  public ApiResponse<Void> testStringMapReferenceWithHttpInfo(@javax.annotation.Nonnull Map<String, String> requestBody, Map<String, String> headers) throws ApiException {
+    HttpRequest.Builder localVarRequestBuilder = testStringMapReferenceRequestBuilder(requestBody, headers);
     try {
       HttpResponse<InputStream> localVarResponse = memberVarHttpClient.send(
           localVarRequestBuilder.build(),
@@ -2132,9 +2817,14 @@ public class FakeApi {
       if (memberVarResponseInterceptor != null) {
         memberVarResponseInterceptor.accept(localVarResponse);
       }
+      InputStream localVarResponseBody = null;
       try {
         if (localVarResponse.statusCode()/ 100 != 2) {
           throw getApiException("testStringMapReference", localVarResponse);
+        }
+        localVarResponseBody = ApiClient.getResponseBody(localVarResponse);
+        if (localVarResponseBody != null) {
+          localVarResponseBody.readAllBytes();
         }
         return new ApiResponse<>(
             localVarResponse.statusCode(),
@@ -2142,11 +2832,9 @@ public class FakeApi {
             null
         );
       } finally {
-        // Drain the InputStream
-        while (localVarResponse.body().read() != -1) {
-          // Ignore
+        if (localVarResponseBody != null) {
+          localVarResponseBody.close();
         }
-        localVarResponse.body().close();
       }
     } catch (IOException e) {
       throw new ApiException(e);
@@ -2157,7 +2845,7 @@ public class FakeApi {
     }
   }
 
-  private HttpRequest.Builder testStringMapReferenceRequestBuilder(@javax.annotation.Nonnull Map<String, String> requestBody) throws ApiException {
+  private HttpRequest.Builder testStringMapReferenceRequestBuilder(@javax.annotation.Nonnull Map<String, String> requestBody, Map<String, String> headers) throws ApiException {
     // verify the required parameter 'requestBody' is set
     if (requestBody == null) {
       throw new ApiException(400, "Missing the required parameter 'requestBody' when calling testStringMapReference");
@@ -2181,6 +2869,8 @@ public class FakeApi {
     if (memberVarReadTimeout != null) {
       localVarRequestBuilder.timeout(memberVarReadTimeout);
     }
+    // Add custom headers if provided
+    localVarRequestBuilder = HttpRequestBuilderExtensions.withAdditionalHeaders(localVarRequestBuilder, headers);
     if (memberVarInterceptor != null) {
       memberVarInterceptor.accept(localVarRequestBuilder);
     }

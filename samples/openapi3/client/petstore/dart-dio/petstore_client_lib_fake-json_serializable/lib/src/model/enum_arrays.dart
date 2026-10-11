@@ -3,11 +3,13 @@
 //
 
 // ignore_for_file: unused_element
+import 'package:copy_with_extension/copy_with_extension.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'enum_arrays.g.dart';
 
 
+@CopyWith()
 @JsonSerializable(
   checked: true,
   createToJson: true,
@@ -41,7 +43,7 @@ class EnumArrays {
     name: r'array_enum',
     required: false,
     includeIfNull: false,
-  unknownEnumValue: List<EnumArraysArrayEnumEnum>.unknownDefaultOpenApi,
+  unknownEnumValue: EnumArraysArrayEnumEnum.unknownDefaultOpenApi,
   )
 
 
@@ -72,7 +74,6 @@ class EnumArrays {
 
 }
 
-
 enum EnumArraysJustSymbolEnum {
 @JsonValue(r'>=')
 greaterThanEqual(r'>='),
@@ -88,7 +89,6 @@ final String value;
 @override
 String toString() => value;
 }
-
 
 
 enum EnumArraysArrayEnumEnum {

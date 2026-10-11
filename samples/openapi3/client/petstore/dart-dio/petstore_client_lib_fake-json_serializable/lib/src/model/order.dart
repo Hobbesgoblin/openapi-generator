@@ -3,11 +3,13 @@
 //
 
 // ignore_for_file: unused_element
+import 'package:copy_with_extension/copy_with_extension.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'order.g.dart';
 
 
+@CopyWith()
 @JsonSerializable(
   checked: true,
   createToJson: true,
@@ -138,16 +140,27 @@ class Order {
 
 /// Order Status
 enum OrderStatusEnum {
-    /// Order Status
+/**
+ * line1
+ * line2
+ * 
+ */
 @JsonValue(r'placed')
 placed(r'placed'),
-    /// Order Status
+/**
+ * line3
+ * line4
+ * 
+ */
 @JsonValue(r'approved')
 approved(r'approved'),
-    /// Order Status
+/**
+ * line5
+ * line6
+ * 
+ */
 @JsonValue(r'delivered')
 delivered(r'delivered'),
-    /// Order Status
 @JsonValue(r'unknown_default_open_api')
 unknownDefaultOpenApi(r'unknown_default_open_api');
 

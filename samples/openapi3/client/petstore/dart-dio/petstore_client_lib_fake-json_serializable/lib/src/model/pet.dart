@@ -5,11 +5,13 @@
 // ignore_for_file: unused_element
 import 'package:openapi/src/model/category.dart';
 import 'package:openapi/src/model/tag.dart';
+import 'package:copy_with_extension/copy_with_extension.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'pet.g.dart';
 
 
+@CopyWith()
 @JsonSerializable(
   checked: true,
   createToJson: true,
@@ -140,16 +142,12 @@ class Pet {
 
 /// pet status in the store
 enum PetStatusEnum {
-    /// pet status in the store
 @JsonValue(r'available')
 available(r'available'),
-    /// pet status in the store
 @JsonValue(r'pending')
 pending(r'pending'),
-    /// pet status in the store
 @JsonValue(r'sold')
 sold(r'sold'),
-    /// pet status in the store
 @JsonValue(r'unknown_default_open_api')
 unknownDefaultOpenApi(r'unknown_default_open_api');
 
